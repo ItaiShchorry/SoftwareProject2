@@ -1,9 +1,10 @@
 /*
+
  * spConfigTest.c
  *
  *  Created on: Aug 25, 2016
  *      Author: mally
- */
+
 
 
 #ifndef SPCONFIG_H_
@@ -15,7 +16,7 @@
 #include "../testingUtils.h"
 
 
-/**
+*
  * Creates a new system configuration struct. The configuration struct
  * is initialized based on the configuration file given by 'filename'.
  *
@@ -38,23 +39,23 @@
  * - SP_CONFIG_SUCCESS - in case of success
  *
  *
- */
+
 static bool spConfigCreateTest(){
 	ASSERT_TRUE(spConfigCreateTest(NULL, "a") == SP_CONFIG_INVALID_ARGUMENT);
 	ASSERT_TRUE(spConfigCreateTest("asdfafha", "a") == SP_CONFIG_CANNOT_OPEN_FILE);
-/*	 * - SP_CONFIG_ALLOC_FAIL - if an allocation failure occurred
+	 * - SP_CONFIG_ALLOC_FAIL - if an allocation failure occurred
 	 * - SP_CONFIG_INVALID_INTEGER - if a line in the config file contains invalid integer
 	 * - SP_CONFIG_INVALID_STRING - if a line in the config file contains invalid string
 	 * - SP_CONFIG_MISSING_DIR - if spImagesDirectory is missing
 	 * - SP_CONFIG_MISSING_PREFIX - if spImagesPrefix is missing
 	 * - SP_CONFIG_MISSING_SUFFIX - if spImagesSuffix is missing
 	 * - SP_CONFIG_MISSING_NUM_IMAGES - if spNumOfImages is missing
-	 * - SP_CONFIG_SUCCESS - in case of success*/
+	 * - SP_CONFIG_SUCCESS - in case of success
 
 	 return 1;
 }
 
-/*
+
  * Returns true if spExtractionMode = true, false otherwise.
  *
  * @param config - the configuration structure
@@ -64,10 +65,10 @@ static bool spConfigCreateTest(){
  *
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
- */
+
 bool spConfigIsExtractionModeTest(const SPConfig config, SP_CONFIG_MSG* msg);
 
-/*
+
  * Returns true if spMinimalGUI = true, false otherwise.
  *
  * @param config - the configuration structure
@@ -77,10 +78,10 @@ bool spConfigIsExtractionModeTest(const SPConfig config, SP_CONFIG_MSG* msg);
  *
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
- */
+
 bool spConfigMinimalGui(const SPConfig config, SP_CONFIG_MSG* msg);
 
-/*
+
  * Returns the number of images set in the configuration file, i.e the value
  * of spNumOfImages.
  *
@@ -91,10 +92,10 @@ bool spConfigMinimalGui(const SPConfig config, SP_CONFIG_MSG* msg);
  *
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
- */
+
 int spConfigGetNumOfImages(const SPConfig config, SP_CONFIG_MSG* msg);
 
-/*
+
  * Returns the number of features to be extracted. i.e the value
  * of spNumOfFeatures.
  *
@@ -105,10 +106,10 @@ int spConfigGetNumOfImages(const SPConfig config, SP_CONFIG_MSG* msg);
  *
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
- */
+
 int spConfigGetNumOfFeatures(const SPConfig config, SP_CONFIG_MSG* msg);
 
-/**
+*
  * Returns the dimension of the PCA. i.e the value of spPCADimension.
  *
  * @param config - the configuration structure
@@ -118,10 +119,10 @@ int spConfigGetNumOfFeatures(const SPConfig config, SP_CONFIG_MSG* msg);
  *
  * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
  * - SP_CONFIG_SUCCESS - in case of success
- */
+
 int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg);
 
-/**
+*
  * Given an index 'index' the function stores in imagePath the full path of the
  * ith image.
  *
@@ -145,11 +146,11 @@ int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg);
  * - SP_CONFIG_INVALID_ARGUMENT - if imagePath == NULL or config == NULL
  * - SP_CONFIG_INDEX_OUT_OF_RANGE - if index >= spNumOfImages
  * - SP_CONFIG_SUCCESS - in case of success
- */
+
 SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
 		int index);
 
-/**
+*
  * The function stores in pcaPath the full path of the pca file.
  * For example given the values of:
  *  spImagesDirectory = "./images/"
@@ -164,12 +165,13 @@ SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
  * @return
  *  - SP_CONFIG_INVALID_ARGUMENT - if imagePath == NULL or config == NULL
  *  - SP_CONFIG_SUCCESS - in case of success
- */
+
 SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
 
-/**
+*
  * Frees all memory resources associate with config.
  * If config == NULL nothig is done.
- */
+
 void spConfigDestroy(SPConfig config);
 
+*/

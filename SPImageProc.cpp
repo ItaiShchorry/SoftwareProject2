@@ -1,3 +1,4 @@
+/*
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
@@ -224,3 +225,4 @@ void sp::ImageProc::showImage(const char* imgPath) {
 
 }
 
+*/
