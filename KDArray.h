@@ -26,14 +26,23 @@ typedef struct kd_array* KDArray;
  */
 KDArray init(SPPoint* arr, int size);
 
-/*returns number of SPPoints in the KDArray*/
+/*method of getting the number of SPPoints in KDArray
+ * @return
+ * NULL if kd == NULL
+ * number of SPPoints in the KDArray in case of success*/
 int KDGetSize(KDArray kd);
 
+/*getter for indexArray
+ * @return
+ * NULL if kd == NULL
+ * kd->indexArray in case of success*/
 int** KDGetArray(KDArray kd);
 
-void KDSetArray(KDArray kd, int** arr);
+
 
 SPPoint* KDGetP(KDArray kd);
+
+void KDDestroy(KDArray kd);
 
 int cmpTuples(const void* a, const void* b);
 /**

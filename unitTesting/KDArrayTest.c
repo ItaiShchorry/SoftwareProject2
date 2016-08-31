@@ -87,46 +87,58 @@ static bool KDArrayTest(){
 	}
 
 	//check split correctness
-/*	KDArray* kdSplit1 = Split(kd, 0);
+	KDArray* kdSplit1 = Split(kd, 0);
 	KDArray* kdSplit2 = Split(kd, 1);
 	KDArray* kdSplit3 = Split(kd, 2);
 
 	//compare sizes
-	ASSERT_TRUE(KDGetSize(kdSplit1[0]) == 25);
-	ASSERT_TRUE(KDGetSize(kdSplit2[0]) == 25);
-	ASSERT_TRUE(KDGetSize(kdSplit3[0]) == 25);
-	ASSERT_TRUE(KDGetSize(kdSplit1[1]) == 25);
-	ASSERT_TRUE(KDGetSize(kdSplit2[1]) == 25);
-	ASSERT_TRUE(KDGetSize(kdSplit3[1]) == 25);
+	ASSERT_TRUE(KDGetSize(*kdSplit1) == 25);
+	ASSERT_TRUE(KDGetSize(*kdSplit2) == 25);
+	ASSERT_TRUE(KDGetSize(*kdSplit3) == 25);
+	ASSERT_TRUE(KDGetSize(*(kdSplit1+1)) == 25);
+	ASSERT_TRUE(KDGetSize(*(kdSplit2+1)) == 25);
+	ASSERT_TRUE(KDGetSize(*(kdSplit3+1)) == 25);
 
 	//make wanted arrays using init, and compare them to returned values of splits
-	SPPoint** leftSplit1 = KDGetArray(kdSplit1[0]); //first 25 in arr1
-	SPPoint** leftSplit2 = KDGetArray(kdSplit2[0]); //25-49 in arr1
-	SPPoint** leftSplit3 = KDGetArray(kdSplit3[0]); //points with original index 25-49
-	SPPoint** rightSplit1 = KDGetArray(kdSplit1[1]); //0-24
-	SPPoint** rightSplit2 = KDGetArray(kdSplit2[1]); //similar to first 25 points in arr3
-	SPPoint** rightSplit3 = KDGetArray(kdSplit3[1]); //the remaining 25
+	int** leftSplit1 = KDGetArray(*kdSplit1); //first 25 in arr1
+	int** leftSplit2 = KDGetArray(*kdSplit2); //25-49 in arr1
+	int** leftSplit3 = KDGetArray(*kdSplit3); //points with original index 25-49
+	int** rightSplit1 = KDGetArray(*(kdSplit1+1)); //25-49
+	int** rightSplit2 = KDGetArray(*(kdSplit2+1)); //similar to first 25 points in arr3
+	int** rightSplit3 = KDGetArray(*(kdSplit3+1)); //the remaining 25
 
-	int leftDim = KDGetSize(kdSplit1[0]);
+	int leftDim = KDGetSize(*kdSplit1);
+	SPPoint* PLeft1 = KDGetP(*kdSplit1);
 	for(i=0; i < leftDim; i++){
-		ASSERT_TRUE(spPointL2SquaredDistance(arr1[i], leftSplit1[0][i]) == 0);
+		ASSERT_TRUE((*(arr1+i) == *(*(leftSplit1)+i))); //sanity check - first dimension is same
+		ASSERT_TRUE(*(arr+i) == *(PLeft1+i)); //sanity check - check PLeft1 has first half of arr
 		//add for rest of splits
 	}
 
-	for(i=0; i < KDGetSize(kdSplit1[1]); i++){
-		ASSERT_TRUE(spPointL2SquaredDistance(arr1[leftDim+i], leftSplit1[1][i]) == 0);
+	int rightDim = KDGetSize(*(kdSplit1+1));
+	SPPoint* PRight1 = KDGetP(*(kdSplit1+1));
+	for(i=0; i < rightDim; i++){
+		ASSERT_TRUE((i == *(*(rightSplit1)+i))); //sanity check - first dimension is same
+		ASSERT_TRUE(*(arr+leftDim+i) == *(PRight1+i)); //sanity check - check PLeft1 has first half of arr
 		//add for rest of splits
-	}*/
+	}
 
 	//
-	free(arr);
+/*	free(arr);*/
 	free(arr1);
 	free(arr2);
 	free(arr3);
-	free(kd);
-/*	free(kdSplit1);
+	KDDestroy(kd);
+/*	KDDestroy(*kdSplit1); //currently i just assigned new space without copying the information. to copy the info, i need to use memcpy
+	KDDestroy(*(kdSplit1+1));
+	KDDestroy(*kdSplit2);
+	KDDestroy(*(kdSplit2+1));
+	KDDestroy(*kdSplit3);
+	KDDestroy(*(kdSplit3+1));
+	free(kdSplit1);
 	free(kdSplit2);
 	free(kdSplit3);*/
+
 	return 1;
 }
 

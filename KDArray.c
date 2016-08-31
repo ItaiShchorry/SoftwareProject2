@@ -49,6 +49,22 @@ void KDSetArray(KDArray kd, int** arr){
 	kd->indexArray = arr;
 }
 
+void KDDestroy(KDArray kd){
+	int** kdArr = KDGetArray(kd);
+	int size = KDGetSize(kd);
+	SPPoint *P = KDGetP(kd);
+	int dim = spPointGetDimension(*P);
+	int i=0;
+
+	for(; i < dim; i++){
+		free(*(kdArr+i));
+	}
+
+	free(kdArr);
+	for(i=0; i<size; i++) free(*(P+i));
+	free(P);
+}
+
 KDArray init(SPPoint* arr, int size){
 	if(arr == NULL) return NULL;
 
@@ -111,60 +127,136 @@ KDArray init(SPPoint* arr, int size){
 	return res;
 }
 
-/*
-KDArray* Split(KDArray kdArr, int coor){
-	if(kdArr == NULL) return NULL;
-	if(coor<0) return NULL;
-
-	KDArray* res = (KDArray*) malloc(2*sizeof(KDArray)); //the 2 KDArrays that will be returned
-	SPPoint** srcArray = KDGetArray(kdArr); //the indexArray of src KDArray
-	SPPoint* P = *srcArray; //first line of source Array will be regarded as indexer for SPPoints
-	int KDSize = KDGetSize(kdArr);
-
-	int* markerArray[KDSize] = {0}; //0 - left part, 1 - right part
-	int i=0;
-	SPPoint leftArr[(KDSize/2)+1] = {NULL};
-	SPPoint rightArr[KDSize/2] = {NULL};
-	int i=0;
-	for(; i<KDSize; i++){
-		if()
-	}
-	//splitting the indexArray to 2
-
-
-	int mark = 0; //will mark if KDSize is odd (true) or not (false)
-	for(i=0;i<(KDSize/2); i++){
-		leftArr[i] = srcArray[coor][i];
-	}
-	if(KDSize%2 == 1){ //if KDSize is odd, need to add another element to leftArr
-		mark = 1;
-		leftArr[i] = srcArray[coor][i];
-		i++;
-	}
-	for(;i<KDSize; i++){
-		rightArr[i] = srcArray[coor][i];
-		markerArray[]
-	}
-
-	//build the two maps
-	SPPoint** mapLeft = (SPPoint**) malloc(KDSize*sizeof(SPPoint));
-	SPPoint** mapRight = (SPPoint**) malloc(KDSize*sizeof(SPPoint));
-	//initialize 2 new indexArrays for the 2 parts
-
-	int dim = spPointGetDimension(leftArr[0]);
-	SPPoint** leftIndex = (SPPoint**) malloc(dim*sizeof(SPPoint*));
-	SPPoint** rightIndex = (SPPoint**) malloc(dim*sizeof(SPPoint*));
-
-	//build the index arrays
-	int j;
-	for(i=0; i < dim; i++){
-		for(j=0; j < KDSize; j++){
-
-		}
-	}
-
-	free(mapLeft);
-	free(mapRight);
+/*helper function to initialize a new KDArray instance given the indexArray and size as parameters
+ * @return
+ * NULL if P == NULL
+ * sets kd->indexArray in case of success*/
+KDArray init2(SPPoint *P, int** arr, int size){
+	KDArray res = (KDArray) malloc(sizeof(KDArray));
+	res->indexArray = arr;
+	res->P = P;
+	res->size = size;
 	return res;
 }
-*/
+
+int* makeAndFillMarkerArray(int** srcArray, int i, int KDSize, int coor){
+	int* markerArray = (int*) malloc(KDSize*sizeof(int)); //0 - left part, 1 - right part
+	int j=0;
+	for(; j<KDSize; j++) *(markerArray+j)=0;
+	if(markerArray == NULL) return NULL;
+	int indexToLit;
+	for(; i<KDSize; i++){ //marking 1 for right part
+		indexToLit = *(*(srcArray+coor) + i);
+		*(markerArray+indexToLit) = 1;
+	}
+	return markerArray;
+}
+
+void splitAndMap(SPPoint* P, int* markerArray, int** mapLeft, int** mapRight, SPPoint** leftP, SPPoint** rightP, int KDSize){
+int i;
+	int k1=0;
+int k2=0;
+for(i=0;i<KDSize; i++){
+	if(markerArray[i]){
+		*(*(rightP)+k1) = *(P+i);
+		*(*(mapRight)+i) = k1;
+		*(*(mapLeft)+i) = -1;
+		k1++;
+	}
+	else{
+		*(*(leftP)+k2) = *(P+i);
+		*(*(mapLeft)+i) = k2;
+		*(*(mapRight)+i) = -1;
+		k2++;
+	}
+}
+}
+
+int*** buildIndexArrays(int dim, int KDSize,int** srcArray, int* mapLeft, int* mapRight){
+	int** leftIndex = (int**) malloc(dim*sizeof(int*));
+	if(leftIndex == NULL) return NULL;
+	int** rightIndex = (int**) malloc(dim*sizeof(int*));
+	if(rightIndex == NULL) return NULL;
+	int*** res = (int***) malloc(2*sizeof(int**));
+	if(res== NULL) return NULL;
+	int halfRoundUp = (KDSize + 1) / 2;
+	int i;
+	int j;
+	int k1 = 0;
+	int k2 = 0;
+	for(i=0; i < dim; i++){
+		int* leftRow = (int*) malloc(halfRoundUp*sizeof(int));
+		int* rightRow = (int*) malloc((KDSize-halfRoundUp)*sizeof(int));
+		for(j=0; j < KDSize; j++){
+			int origPIndex = *(*(srcArray+i) +j);
+			if((*(mapLeft + origPIndex)) != -1){//meaning we know that point belongs to leftP
+				*(leftRow+k1) = *(mapLeft + origPIndex);
+				k1++;
+			}
+			else{ //we know that the point is in the right side
+				*(rightRow+k2) = *(mapRight + origPIndex);
+				k2++;
+			}
+		}
+		if(k1 != halfRoundUp){
+				printf("k1 is not the right size, and is actually %d", k1);
+				fflush(NULL);
+				return NULL; //bug
+			}
+		if(k2 != (KDSize-halfRoundUp)){
+				printf("k2 is not the right size, and is actually %d", k2);
+				fflush(NULL);
+				return NULL; //bug
+			}
+		k1=0;
+		k2=0;
+		*(leftIndex + i) = leftRow;
+		*(rightIndex + i) = rightRow;
+	}
+	*res = leftIndex;
+	*(res+1) = rightIndex;
+
+	return res;
+}
+
+KDArray* Split(KDArray kdArr, int coor){
+	if(kdArr == NULL) return NULL;
+	if((coor<0) || (coor >= KDGetSize(kdArr))) return NULL;
+
+	//initializations
+	KDArray* res = (KDArray*) malloc(2*sizeof(KDArray)); //the 2 KDArrays that will be returned
+	int** srcArray = KDGetArray(kdArr); //the indexArray of src KDArray
+	SPPoint* P = KDGetP(kdArr);
+	int KDSize = KDGetSize(kdArr);
+	int halfRoundUp = (KDSize + 1) / 2;
+	int i=halfRoundUp;
+
+	SPPoint* leftP = (SPPoint*) malloc(halfRoundUp*sizeof(SPPoint)); // left set of points
+	if(leftP == NULL) return NULL;
+	SPPoint* rightP = (SPPoint*) malloc((KDSize-halfRoundUp)*sizeof(SPPoint)); // right set of points
+	if(rightP == NULL) return NULL;
+	int* mapLeft = (int*) malloc(KDSize*sizeof(int)); //mapping for left set
+	if(mapLeft == NULL) return NULL;
+	int* mapRight = (int*) malloc(KDSize*sizeof(int)); //mapping for right set
+	if(mapRight == NULL) return NULL;
+
+	//make and fill markerArray
+	int* markerArray = makeAndFillMarkerArray(srcArray, i, KDSize, coor);
+
+	//split P to  2 SPPoint* according to markerArray, and build the 2 maps
+	splitAndMap(P, markerArray, &mapLeft, &mapRight, &leftP, &rightP, KDSize);
+
+
+	//initialize and build the 2 new indexArrays for the 2 parts
+	int dim = spPointGetDimension(*P);
+	int*** indexArrays = buildIndexArrays(dim, KDSize,srcArray, mapLeft, mapRight);
+
+	//make the 2 new KDArrays
+	*res = init2(leftP, *indexArrays, halfRoundUp);
+	*(res+1) = init2(rightP, *(indexArrays+1), (KDSize - halfRoundUp));
+	free(mapLeft);
+	free(mapRight);
+	free(markerArray);
+	free(indexArrays);
+	return res;
+}
