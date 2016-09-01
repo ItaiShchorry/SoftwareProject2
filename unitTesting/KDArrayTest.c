@@ -57,13 +57,6 @@ static bool KDArrayTest(){
 		fflush(NULL);*/
 	}
 
-/*	//reverse arr2
-	SPPoint temp = NULL;
-	for(i=0; i < 25; i++){
-		temp = *(arr2 + 49-i);
-		*(arr2 + 49-i) = *(arr2 + i);
-		*(arr2 + i) = temp;
-	}*/
 
 	qsort(arr3, 50, sizeof(Tuple), cmpTuples);
 /*
@@ -127,7 +120,7 @@ static bool KDArrayTest(){
 /*	free(arr);*/
 	free(arr1);
 	free(arr2);
-	free(arr3);
+	free(arr3); //need to free each item and then free pointer
 	KDDestroy(kd);
 /*	KDDestroy(*kdSplit1); //currently i just assigned new space without copying the information. to copy the info, i need to use memcpy
 	KDDestroy(*(kdSplit1+1));
@@ -142,8 +135,8 @@ static bool KDArrayTest(){
 	return 1;
 }
 
-int main(){
+/*int main(){
 	RUN_TEST(KDArrayTest);
 
 	return 1;
-}
+}*/
