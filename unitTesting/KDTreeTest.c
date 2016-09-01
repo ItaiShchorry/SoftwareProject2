@@ -15,6 +15,37 @@
 #include "../HelperFunctions.c"
 #include "../KDTree.h"
 
+void printTreeTest(KDTreeNode tree){
+		if(tree == NULL) return;
+/*		ASSERT_TRUE(tree.search(22));
+		ASSERT_TRUE(tree.search(24));
+		ASSERT_TRUE(tree.search(30));
+		ASSERT_TRUE(tree.min);*/
+		int ab[4]={1,2,3,4};
+		/*(Arrays.toString(ab));*/
+		printTree(KDTreeGetLeft(tree), "                                          ");
+		printTree(KDTreeGetLeft(tree), "                                          ");
+	}
+
+void printTree(KDTreeNode node,char* rightspaces) {
+		   if (node==NULL){
+			   	return;
+			   }
+/*			  if (node.isRed){
+				    System.err.println(rightspaces + node.key);
+			   }
+			   else{
+				   (rightspaces + node.key);
+			   }
+			   if (node.getRight!=nill){
+				   printTree(node.getRight,rightspaces+"     ");
+			   }
+			   if (node.getLeft!=nill){
+				   String rightspaces1=new String(new char[rightspaces.length()-6]).replace("\0", " ");
+				   printTree(node.getLeft,rightspaces1);
+			   }*/
+		   }
+
 static bool KDTreeTest(){
 	ASSERT_TRUE(buildKDTree(NULL) == NULL);
 
