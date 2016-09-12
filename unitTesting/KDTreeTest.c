@@ -9,42 +9,44 @@
 #include "testingUtils.h"
 #include <stdbool.h>
 #include <float.h>
+#include <String.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "../KDArray.h"
 #include "../HelperFunctions.c"
 #include "../KDTree.h"
 
+
+
+void printTree(KDTreeNode node,char* rightspaces) {
+		   if (node==NULL){
+			   	return;
+			   }
+		   printf("%s%f", rightspaces, KDTreeGetVal(node));
+		   fflush(NULL);
+		   KDTreeNode right = KDTreeGetRight(node);
+		   char* m = strcat(rightspaces,"     ");
+		   if (right !=NULL){
+			   printTree(right,m);
+		   }
+		   KDTreeNode left = KDTreeGetLeft(node);
+		   if (left!=NULL){
+/*			   char* a[strlen(rightspaces) - 6];*/
+	/*		   char* rightspaces1[strlen(rightspaces) - 5]("\0", "  ");*/
+			   printTree(KDTreeGetLeft(node),rightspaces);
+		   }
+		   }
 void printTreeTest(KDTreeNode tree){
 		if(tree == NULL) return;
 /*		ASSERT_TRUE(tree.search(22));
 		ASSERT_TRUE(tree.search(24));
 		ASSERT_TRUE(tree.search(30));
-		ASSERT_TRUE(tree.min);*/
 		int ab[4]={1,2,3,4};
 		/*(Arrays.toString(ab));*/
 		printTree(KDTreeGetLeft(tree), "                                          ");
 		printTree(KDTreeGetLeft(tree), "                                          ");
 	}
 
-void printTree(KDTreeNode node,char* rightspaces) {
-		   if (node==NULL){
-			   	return;
-			   }
-/*			  if (node.isRed){
-				    System.err.println(rightspaces + node.key);
-			   }
-			   else{
-				   (rightspaces + node.key);
-			   }
-			   if (node.getRight!=nill){
-				   printTree(node.getRight,rightspaces+"     ");
-			   }
-			   if (node.getLeft!=nill){
-				   String rightspaces1=new String(new char[rightspaces.length()-6]).replace("\0", " ");
-				   printTree(node.getLeft,rightspaces1);
-			   }*/
-		   }
 
 static bool KDTreeTest(){
 	ASSERT_TRUE(buildKDTree(NULL) == NULL);
@@ -77,13 +79,17 @@ static bool KDTreeTest(){
 	KDTreeNode tempL = KDTreeGetLeft(tree);
 	int median = 3;
 	while((KDTreeGetLeft(tempL) != NULL)){
-			ASSERT_TRUE(KDTreeGetData(tempL) == NULL);
+/*		printf("got to loop");
+		fflush(NULL);*/
+		ASSERT_TRUE(KDTreeGetData(tempL) == NULL);
 			ASSERT_TRUE(KDTreeGetDim(tempL) == 0); //as we're using max spread, expected to catch 1st dim
 			ASSERT_TRUE(KDTreeGetVal(tempL) == (median-1));
 			median = (median+1) / 2;
 			if(KDTreeGetLeft(tempL) != NULL)
 				tempL = KDTreeGetLeft(tempL);
 	}
+/*		printf("got here");
+		fflush(NULL);*/
 		ASSERT_TRUE(*(KDTreeGetData(tempL)) == (*(KDGetP(kd))));
 /*		double templVal = KDTreeGetVal(tempL); its ok - the value of it is infinity, as wanted
 		ASSERT_TRUE(templVal == DBL_MAX);*/
@@ -93,7 +99,7 @@ static bool KDTreeTest(){
 
 
 	//print entire tree using in-order walk
-
+	printTree(tree, "         ");
 	//free everything
 /*	KDTreeDestroy(tree);*/
 	free(arr);
@@ -103,6 +109,5 @@ static bool KDTreeTest(){
 
 int main(){
 	RUN_TEST(KDTreeTest);
-
 	return 1;
 }

@@ -13,9 +13,10 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "SPPoint.h"
+#include "SPBPriorityQueue.h"
+#include "SPListElement.h"
 
-#define INVALID_DIM -1
-#define INVALID_VAL DBL_MAX
+
 struct kd_tree_node {
 	int Dim;
 	double Val;
@@ -91,7 +92,7 @@ int randomFunc(KDArray kd){
 int incrementalFunc(KDArray kd){
 	static int cnt = 0;
 	int res = cnt;
-	cnt = (cnt+1) % (spPointGetDimension(*(KDGetP(kd)))); //probably dim is a mistake
+	cnt = (cnt+1) % (spPointGetDimension(*(KDGetP(kd))));
 	return res;
 }
 
@@ -130,6 +131,54 @@ KDTreeNode buildKDTree(KDArray kd){ //arguments for KDArray and calls recursive 
 	else if (str == "INCREMENTAL") foo = incrementalFunc; //make sure that str can't be something else
 */
 	return buildKDTreeRec(kd, foo);
+}
+
+bool isLeaf(KDTreeNode node){
+	if((KDTreeGetLeft(node) == NULL) && (KDTreeGetRight(node) == NULL)) return 1;
+	return 0;
+}
+
+//strictly according to suggested pseudo-code given to us
+void KNearestNeighborsRec(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
+	if(curr == NULL) return;
+	SPPoint* p1 = KDTreeGetData(curr);
+	int currDim = KDTreeGetDim(curr);
+	double currVal = KDTreeGetVal(curr);
+	if(isLeaf(curr)){
+		int data = spPointGetIndex(*p1);
+		SPListElement newElem = spListElementCreate(data, spPointL2SquaredDistance(*p1, p));
+		spBPQueueEnqueue(bpq, newElem);
+		return;
+	}
+
+	bool mark = 0; // 0 - left, 1 - right; for going right direction in last part.
+	double coord = spPointGetAxisCoor(*p1, currDim);
+	if(coord <= currVal){
+		KNearestNeighborsRec(curr->Left, bpq, p); //search left subtree
+	}
+	else{
+		mark = 1;
+		KNearestNeighborsRec(curr->Right, bpq, p); //search right subtree
+	}
+
+	//check if another search is needed.
+	SPListElement lastElem = spBPQueuePeekLast(bpq);
+	double lastElemVal = spListElementGetValue(lastElem);
+	if((!spBPQueueIsFull(bpq)) || ( (pow(currVal - coord, 2) < lastElemVal) )){
+		if(mark){ //meaning we've been to right side, now go to left side
+			KNearestNeighborsRec(curr->Left, bpq, p);
+		}
+		else{ //meaning we've been to left side
+			KNearestNeighborsRec(curr->Right, bpq, p);
+		}
+	}
+}
+
+void KNearestNeighbors(KDTreeNode head, SPPoint p){
+	int spKNN = 2; //need to fix to real value of input form SPConfig
+	SPBPQueue queue = spBPQueueCreate(spKNN); //notice possible diff notation for malloc error
+	KNearestNeighborsRec(head, queue, p);
+	return;
 }
 
 
