@@ -1,3 +1,4 @@
+/*
 
 #include <stdio.h>
 #include "main_aux.h"
@@ -288,3 +289,4 @@ leave:
 	spLoggerDestroy();
 	return 0;
 }
+*/

@@ -152,7 +152,8 @@ KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_MSG* msg){
 		return result;
 	}
 	else{
-		*msg =
+		*msg = SP_TREE_BUILD_FAILURE;
+		return NULL;
 	}
 
 }
@@ -178,11 +179,11 @@ void KNearestNeighbors(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
 	bool mark = 0; // 0 - left, 1 - right; for going right direction in last part.
 	double coord = spPointGetAxisCoor(*p1, currDim);
 	if(coord <= currVal){
-		KNearestNeighborsRec(curr->Left, bpq, p); //search left subtree
+		KNearestNeighbors(curr->Left, bpq, p); //search left subtree
 	}
 	else{
 		mark = 1;
-		KNearestNeighborsRec(curr->Right, bpq, p); //search right subtree
+		KNearestNeighbors(curr->Right, bpq, p); //search right subtree
 	}
 
 	//check if another search is needed.
@@ -190,10 +191,10 @@ void KNearestNeighbors(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
 	double lastElemVal = spListElementGetValue(lastElem);
 	if((!spBPQueueIsFull(bpq)) || ( (pow(currVal - coord, 2) < lastElemVal) )){
 		if(mark){ //meaning we've been to right side, now go to left side
-			KNearestNeighborsRec(curr->Left, bpq, p);
+			KNearestNeighbors(curr->Left, bpq, p);
 		}
 		else{ //meaning we've been to left side
-			KNearestNeighborsRec(curr->Right, bpq, p);
+			KNearestNeighbors(curr->Right, bpq, p);
 		}
 	}
 }

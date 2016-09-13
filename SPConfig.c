@@ -293,8 +293,8 @@ void spConfigDestroy(SPConfig config)
 
 void printRegErr(char* file, int line, SP_CONFIG_MSG errorType)
 {
-	spLoggerPrintFile(file);
-	spLoggerPrintLine(line);
+/*	spLoggerPrintFile(file);
+	spLoggerPrintLine(line);*/
 
 	char* msg = (char*) malloc(sizeof(char)*MAX_LEN);
 	switch(errorType)

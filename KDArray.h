@@ -11,7 +11,12 @@
 #define KDARRAY_H_
 #include "SPPoint.h"
 
-
+typedef enum sp_tree_msg_t {
+	SP_TREE_ALLOC_FAIL,
+	SP_TREE_INVALID_ARGUMENT,
+	SP_TREE_BUILD_FAILURE,
+	SP_TREE_SUCCESS
+} SP_TREE_MSG;
 
 typedef struct kd_array* KDArray;
 

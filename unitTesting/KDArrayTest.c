@@ -23,7 +23,8 @@ int cmpThirdDim (const void* a, const void* b)
 
 
 static bool KDArrayTest(){
-	ASSERT_TRUE(init(NULL, 10) == NULL);
+	SP_TREE_MSG msg;
+	ASSERT_TRUE(init(NULL, 10, &msg) == NULL);
 
 	SPPoint* arr = (SPPoint*) malloc(50*sizeof(SPPoint));
 	if(arr == NULL) return NULL;
@@ -67,7 +68,7 @@ static bool KDArrayTest(){
 */
 
 	//create KDArray, and check correctness of rows
-	KDArray kd = init(arr, 50);
+	KDArray kd = init(arr, 50, &msg);
 	int** points = KDGetArray(kd); //entire indexArray. now we'll get each row separately
 	for(i=0; i < 50; i++){
 		int a = *(arr1+i);
@@ -135,8 +136,8 @@ static bool KDArrayTest(){
 	return 1;
 }
 
-/*int main(){
+int main(){
 	RUN_TEST(KDArrayTest);
 
 	return 1;
-}*/
+}
