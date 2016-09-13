@@ -24,7 +24,7 @@ typedef struct kd_array* KDArray;
  * 	NULL - If allocations failed or arr is NULL
  * 	A new KDArray in case of success.
  */
-KDArray init(SPPoint* arr, int size);
+KDArray init(SPPoint* arr, int size, SP_TREE_MSG* msg);
 
 /*method of getting the number of SPPoints in KDArray
  * @return

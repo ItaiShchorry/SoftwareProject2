@@ -13,8 +13,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "SPPoint.h"
-#include "SPBPriorityQueue.h"
 #include "SPListElement.h"
+
 
 
 struct kd_tree_node {
@@ -118,19 +118,43 @@ KDTreeNode buildKDTreeRec(KDArray kd, int (*func) (KDArray)){ //arguments for KD
 	}
 }
 
-KDTreeNode buildKDTree(KDArray kd){ //arguments for KDArray and calls recursive functions
-	//lots of splits, going left or right. we send each time the iSplit and the KDArray
-	//the spread/incremental and blah blah is used only once.
-	//getter from the config. takes the method and inserts it to enum
-	if(kd == NULL) return NULL;
-/*	char* str = NULL; //need to get spKDTreeSplitMethod from SPConfig*/
+
+
+
+KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_MSG* msg){
+	if(kd == NULL){
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		return NULL;
+	}
+
 	int (*foo) (KDArray);
-	foo = maxSpreadFunc;
-/*
-	else if(str == "RANDOM")foo = randomFunc;
-	else if (str == "INCREMENTAL") foo = incrementalFunc; //make sure that str can't be something else
-*/
-	return buildKDTreeRec(kd, foo);
+	SP_TREE_SPLIT_METHOD splitMethod = SPConfigGetSplitMethod(config, msg);
+	if (*msg != SP_TREE_SUCCESS){
+		//write what we want to happen. probably ok as it is.
+		return NULL;
+	}
+	switch(splitMethod){
+	case RANDOM:
+		foo = randomFunc;
+		break;
+
+	case INCREMENTAL:
+		foo = incrementalFunc;
+		break;
+
+	case MAX_SPREAD:
+		foo = maxSpreadFunc;
+	}
+
+	KDTreeNode result = buildKDTreeRec(kd, foo);
+	if(result != NULL){
+		*msg = SP_CONFIG_SUCCESS;
+		return result;
+	}
+	else{
+		*msg =
+	}
+
 }
 
 bool isLeaf(KDTreeNode node){
@@ -139,7 +163,7 @@ bool isLeaf(KDTreeNode node){
 }
 
 //strictly according to suggested pseudo-code given to us
-void KNearestNeighborsRec(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
+void KNearestNeighbors(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
 	if(curr == NULL) return;
 	SPPoint* p1 = KDTreeGetData(curr);
 	int currDim = KDTreeGetDim(curr);
@@ -174,12 +198,6 @@ void KNearestNeighborsRec(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
 	}
 }
 
-void KNearestNeighbors(KDTreeNode head, SPPoint p){
-	int spKNN = 2; //need to fix to real value of input form SPConfig
-	SPBPQueue queue = spBPQueueCreate(spKNN); //notice possible diff notation for malloc error
-	KNearestNeighborsRec(head, queue, p);
-	return;
-}
 
 
 

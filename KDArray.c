@@ -65,7 +65,7 @@ void KDDestroy(KDArray kd){
 	free(P);
 }
 
-KDArray init(SPPoint* arr, int size){
+KDArray init(SPPoint* arr, int size, SP_TREE_MSG* msg){
 	if(arr == NULL) return NULL;
 
 	//initialize KDArray

@@ -6,15 +6,24 @@
  */
 
 #include "KDArray.h"
+#include "SPConfig.h"
 #include "string.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include "SPBPriorityQueue.h"
 
 #ifndef KDTREE_H_
 #define KDTREE_H_
 #define INVALID_DIM -1
 #define INVALID_VAL DBL_MAX
+
+typedef enum sp_tree_msg_t {
+	SP_TREE_ALLOC_FAIL,
+	SP_TREE_INVALID_ARGUMENT,
+	SP_TREE_BUILD_FAILURE,
+	SP_TREE_SUCCESS
+} SP_TREE_MSG;
 typedef struct kd_tree_node* KDTreeNode;
 
 /**
@@ -61,7 +70,7 @@ double KDTreeGetVal(KDTreeNode node);
  * 	NULL - If allocations failed or kd is NULL
  * 	A new KDArray in case of success.
  */
-KDTreeNode buildKDTree(KDArray kd);
+KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_MSG* msg);
 
 /**
  * returns the K nearest neighbors of p that are in KDTree that node is head of
@@ -70,5 +79,5 @@ KDTreeNode buildKDTree(KDArray kd);
  * if p has different number of dimensions
  * 	k closest neighbors of point p
  */
-void KNearestNeighbors(KDTreeNode node, SPPoint p);
+void KNearestNeighbors(KDTreeNode node,SPBPQueue bpq, SPPoint p);
 #endif /* KDTREE_H_ */

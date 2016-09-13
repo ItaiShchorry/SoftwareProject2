@@ -19,9 +19,8 @@
 
 
 void printTree(KDTreeNode node,char* rightspaces) {
-		   if (node==NULL){
-			   	return;
-			   }
+		   if (node==NULL)return;
+
 		   printf("%s%f", rightspaces, KDTreeGetVal(node));
 		   fflush(NULL);
 		   KDTreeNode right = KDTreeGetRight(node);
