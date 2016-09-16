@@ -9,14 +9,9 @@
 
 #ifndef KDARRAY_H_
 #define KDARRAY_H_
+
 #include "SPPoint.h"
 
-typedef enum sp_tree_msg_t {
-	SP_TREE_ALLOC_FAIL,
-	SP_TREE_INVALID_ARGUMENT,
-	SP_TREE_BUILD_FAILURE,
-	SP_TREE_SUCCESS
-} SP_TREE_MSG;
 
 typedef struct kd_array* KDArray;
 
@@ -29,7 +24,7 @@ typedef struct kd_array* KDArray;
  * 	NULL - If allocations failed or arr is NULL
  * 	A new KDArray in case of success.
  */
-KDArray init(SPPoint* arr, int size, SP_TREE_MSG* msg);
+KDArray init(SPPoint* arr, int size);
 
 /*method of getting the number of SPPoints in KDArray
  * @return
@@ -47,7 +42,12 @@ int** KDGetArray(KDArray kd);
 
 SPPoint* KDGetP(KDArray kd);
 
-void KDDestroy(KDArray kd);
+void KDArrayDestroy(KDArray kd);
+
+/*helper function used for freeing only
+ *the pointers of KDArray, since we're still using the objects themselves*/
+void freePointersOfKDArray(KDArray kd);
+
 
 int cmpTuples(const void* a, const void* b);
 /**

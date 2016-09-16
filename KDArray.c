@@ -6,11 +6,10 @@
  */
 
 #include "string.h"
-#include "KDArray.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "HelperFunctions.c"
+#include "KDArray.h"
 
 
 struct kd_array {
@@ -18,6 +17,11 @@ struct kd_array {
 	int size;
 	int** indexArray;
 };
+
+typedef struct
+{
+  double data[2];
+} Tuple;
 
 int cmpTuples(const void* a, const void* b) {
   const Tuple* ptr_a = a;
@@ -49,23 +53,32 @@ void KDSetArray(KDArray kd, int** arr){
 	kd->indexArray = arr;
 }
 
-void KDDestroy(KDArray kd){
+void KDArrayDestroy(KDArray kd){
 	int** kdArr = KDGetArray(kd);
 	int size = KDGetSize(kd);
 	SPPoint *P = KDGetP(kd);
 	int dim = spPointGetDimension(*P);
 	int i=0;
-
+	int j=0;
 	for(; i < dim; i++){
 		free(*(kdArr+i));
 	}
-
 	free(kdArr);
+
 	for(i=0; i<size; i++) free(*(P+i));
 	free(P);
 }
 
-KDArray init(SPPoint* arr, int size, SP_TREE_MSG* msg){
+
+void freePointersOfKDArray(KDArray kd){
+	int** kdArr = KDGetArray(kd);
+	SPPoint *P = KDGetP(kd);
+
+	free(kdArr);
+	free(P);
+}
+
+KDArray init(SPPoint* arr, int size){
 	if(arr == NULL) return NULL;
 
 	//initialize KDArray
@@ -123,7 +136,9 @@ KDArray init(SPPoint* arr, int size, SP_TREE_MSG* msg){
 
 	//freeing all buffers
 
-	free(valuesArray);
+	for(i=0; i<size; i++){
+		free((valuesArray+i));
+	}
 	return res;
 }
 

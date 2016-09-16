@@ -1,4 +1,3 @@
-/*
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
@@ -9,8 +8,9 @@
 #include <opencv2/highgui.hpp>
 #include <cstdio>
 #include "SPImageProc.h"
-extern "C" {
-#include "SPLogger.h"
+
+extern "C"{
+	#include "SPLogger.h"
 }
 
 using namespace cv;
@@ -225,4 +225,3 @@ void sp::ImageProc::showImage(const char* imgPath) {
 
 }
 
-*/

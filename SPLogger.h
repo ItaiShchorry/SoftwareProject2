@@ -214,4 +214,10 @@ SP_LOGGER_MSG spLoggerPrintDebug(const char* msg, const char* file,
  */
 SP_LOGGER_MSG spLoggerPrintMsg(const char* msg);
 
+SP_LOGGER_MSG spLoggerPrintFile(const char* file);
+
+SP_LOGGER_MSG spLoggerPrintFunc(const char* func);
+
+SP_LOGGER_MSG spLoggerPrintLine(const int line);
+
 #endif

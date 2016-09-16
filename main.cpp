@@ -1,9 +1,5 @@
-/*
 
 #include <stdio.h>
-#include "main_aux.h"
-//#include "sp_image_proc_util.h"
-
 #include <iostream>
 #include <stdlib.h>
 
@@ -15,13 +11,8 @@
 #include <cstdlib>
 #include <cstring>
 extern "C"{
-#include "SPConfig.h"
-#include "SPLogger.h"
-#include "SPPoint.h"
-#include "SPBPriorityQueue.h"
 #include "main_aux.h"
-#include "KDTree.h"
-
+#include "SPLogger.h"
 }
 using namespace std;
 using namespace cv;
@@ -33,189 +24,16 @@ struct image
 	int hits;
 };
 
-int main(int argc, char *argv[])
-{
-	//Creating the log file and logger object
-	spLoggerCreate("SPCBIR Log",SP_LOGGER_INFO_WARNING_ERROR_LEVEL);
 
-	//MUST declare all variables before first label jump, otherwise it's a compiler error
-	char* configPath = (char*) malloc(sizeof(char)*MAX_LEN);
-	SP_CONFIG_MSG configMsg;
-	SPConfig config;
-	ImageProc proc = NULL;
-	int numOfImages, numOfFeats,numOfExtFeats,numOfSimilarImages=spConfigGetNumOfSimilarImages(config,&configMsg),totalNumOfFeats,count=0;
-	int numOfFeatsPerImage[numOfImages];
-	char* path = (char*) malloc(sizeof(char)*MAX_LEN);
-	SPPoint** imagesPointsArray;
-	SPPoint* imagesForTreeInit;
-	FILE* writingFile;
-	FILE* readingFile;
+void leaveFunc(char* configPath, char* path, SPPoint** imagesPointsArray, SPPoint* imagesForTreeInit){
+	free(configPath);
+	free(path);
+	free(imagesPointsArray);
+	free(imagesForTreeInit);
+	spLoggerDestroy();
+}
 
-	//Check the number of arguments the user entered
-	if(argc == 3)//The user entered command line arguments, meaning the config file path
-	{
-		if(!strcmp(argv[1],"-c"))
-		{
-			configPath = argv[2];
-		}
-	}
-	else if(argc == 1)//The user DIDN'T enter a config file path, so we take the default
-	{
-		strcpy(configPath,"spcbir.config");
-	}
-	else //The user entered more than 2 command line arguments, error
-	{
-		printf("Invalid command line : use -c <config_filename>\n");
-		goto leave;
-	}
-
-	//Creating the config file
-	config = spConfigCreate(configPath,&configMsg);
-	//Checking if creating it failed
-	if (config == NULL && configMsg == SP_CONFIG_CANNOT_OPEN_FILE)
-	{
-		//Checking if the config file is the default file
-		if(!strcmp(configPath,"spcbir.config"))
-		{
-			printf("The default configuration file spcbir.config couldn't be opened\n");
-			goto leave;
-		}
-		//Getting here means the config file was input by the user
-		else
-		{
-			char stringToPrint[MAX_LEN];
-			sprintf(stringToPrint,"%s%s%s","The configuration file ",configPath," couldn't be open\n");
-			printf(stringToPrint);
-			goto leave;
-		}
-
-	}
-	//Create the image processing object
-	proc = ImageProc(config);
-	//Getting the images' details
-	numOfImages = spConfigGetNumOfImages(config,&configMsg);
-	if (configMsg != SP_CONFIG_SUCCESS)
-		{
-		spLoggerPrintError("Getting spConfigGetNumOfImages failed","main.c",__func__,__LINE__);
-		goto leave;
-		}
-	numOfFeats = spConfigGetNumOfFeatures(config,&configMsg);
-	if (configMsg != SP_CONFIG_SUCCESS)
-		{
-			spLoggerPrintError("Getting spConfigGetNumOfFeatures failed","main.c",__func__,__LINE__);
-			goto leave;
-		}
-	numOfSimilarImages = spConfigGetNumOfSimilarImages(config,&configMsg);
-	if (configMsg != SP_CONFIG_SUCCESS)
-		{
-			spLoggerPrintError("Getting spConfigGetNumOfSimilarImages failed","main.c",__func__,__LINE__);
-			goto leave;
-		}
-	//Create array to store the images
-	imagesPointsArray = (SPPoint**)malloc(numOfImages*sizeof(SPPoint*));
-	//Check if we are in extraction mode
-	if (spConfigIsExtractionMode(config,&configMsg))
-		{
-		//Go over all of the images and write the feats file
-		for (int i = 0; i < numOfImages; i++)
-		{
-			configMsg = spConfigGetImagePath (path,config,i);
-			//Checking if getting the image path failed
-			if (configMsg != SP_CONFIG_SUCCESS)
-			{
-				char stringToPrint[MAX_LEN];
-				sprintf(stringToPrint,"%s%d%s","Getting the image path of image number ",i," failed");
-				spLoggerPrintError(stringToPrint,"main.c",__func__,__LINE__);
-				fclose(writingFile);
-				goto leave;
-			}
-			//extracting the image features
-			*(imagesPointsArray+i) = proc.getImageFeatures(path,i,&numOfExtFeats);
-			totalNumOfFeats += numOfExtFeats;
-			*(numOfFeatsPerImage+i) = numOfExtFeats;
-			//Getting the feats file path
-			configMsg = spConfigGetFeatsPath(path,config,i);
-			//Checking if getting the feats file path failed
-			if (configMsg != SP_CONFIG_SUCCESS)
-			{
-				char stringToPrint[MAX_LEN];
-				sprintf(stringToPrint,"%s%d%s","Getting the feats path of image number ",i," failed");
-				spLoggerPrintError(stringToPrint,"main.c",__func__,__LINE__);
-				fclose(writingFile);
-				goto leave;
-			}
-			writingFile = fopen(path,"w");
-			if (writingFile == NULL)
-			{
-				spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
-				goto leave;
-			}
-			writeFeatsToFile(writingFile,*(imagesPointsArray+i),numOfExtFeats);
-		}
-
-			fclose(writingFile);
-
-			imagesForTreeInit = (SPPoint*)malloc(sizeof(SPPoint)*totalNumOfFeats);
-
-			for (int i = 0; i < numOfImages; i++)
-			{
-				for (int j = 0; j < numOfFeatsPerImage[i]; j++)
-				{
-					imagesForTreeInit[count] = spPointCopy(imagesPointsArray[i][j]);
-					count++;
-				}
-			}
-			free(imagesPointsArray);
-		}
-		else //non-Extraction mode
-		{
-			//Go over all the images
-			for (int i = 0; i < numOfImages; i++)
-			{
-				//Get the feats path of each image
-				configMsg = spConfigGetFeatsPath(path,config,i);
-				if (configMsg != SP_CONFIG_SUCCESS)
-				{
-					char stringToPrint[MAX_LEN];
-					sprintf(stringToPrint,"%s%d%s","Getting the feats path of image number ",i," failed");
-					spLoggerPrintError(stringToPrint,"main.c",__func__,__LINE__);
-					fclose(writingFile);
-					goto leave;
-				}
-				readingFile = fopen(path,"r");
-				if (readingFile == NULL)
-				{
-					spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
-					goto leave;
-				}
-				*(imagesPointsArray+i) = readFeatsFromFile(readingFile,(numOfFeatsPerImage+i));
-				totalNumOfFeats += *(numOfFeatsPerImage+i);
-			}
-
-			fclose(readingFile);
-			imagesForTreeInit = (SPPoint*)malloc(sizeof(SPPoint)*totalNumOfFeats);
-
-			for (int i = 0; i < numOfImages; ++i)
-			{
-				for (int j = 0; j < *(numOfFeatsPerImage+i); ++j)
-				{
-					imagesForTreeInit[count] = spPointCopy(*( *(imagesPointsArray+i) +j ));
-					count++;
-				}
-			}
-			free(imagesPointsArray);
-		}
-
-		//Initialize KDtree of images
-		SP_TREE_MSG treeMsg;
-		KDArray kdArr = init(imagesForTreeInit, totalNumOfFeats, &treeMsg);
-		//write the if statements of configMsg
-
-		KDTreeNode head = buildKDTree(kdArr, config, &treeMsg);
-		//write the if statements of configMsg
-
-		//loop for receiving a query image from the user
-		//This loop keeps going until the user enters the exit string <>
+void loopForQueries(KDTreeNode head, char* path, int numOfImages, int numOfExtFeats, int numOfSimilarImages, SPConfig config, SP_CONFIG_MSG* configMsg, ImageProc proc){
 		while(1){
 
 				printf("Please enter an image path:\n");
@@ -258,10 +76,10 @@ int main(int argc, char *argv[])
 
 				//Sort all the images according to hits
 				qsort(&images,numOfImages,sizeof(Image),compareImagesByHits);
-				free(featsOfQueryImage);
+				free(featsOfQueryImage); //probably need to free all items.
 
 				//Check if minimal GUI mode is on
-				if(spConfigMinimalGui(config,&configMsg))
+				if(spConfigMinimalGui(config,configMsg))
 				{
 					//Go over all the images which are most similar
 					for (int i = 0; i <numOfSimilarImages ; i++)
@@ -280,13 +98,183 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
+}
 
-leave:
-	free(configPath);
-	free(path);
-	free(imagesPointsArray);
-	free(imagesForTreeInit);
-	spLoggerDestroy();
+int main(int argc, char *argv[])
+{
+	//Creating the log file and logger object
+	spLoggerCreate("SPCBIR Log",SP_LOGGER_INFO_WARNING_ERROR_LEVEL);
+
+	//MUST declare all variables before first label jump, otherwise it's a compiler error
+	char* configPath = (char*) malloc(sizeof(char)*MAX_LEN);
+	SP_CONFIG_MSG configMsg;
+	SPConfig config;
+	int numOfImages, numOfFeats,numOfExtFeats,totalNumOfFeats,count=0;
+	int numOfSimilarImages=0;
+	char* path = (char*) malloc(sizeof(char)*MAX_LEN);
+	SPPoint** imagesPointsArray = NULL;
+	SPPoint* imagesForTreeInit = NULL;
+	FILE* writingFile = NULL;
+	FILE* readingFile = NULL;
+	KDArray kdArr = NULL;
+	SP_TREE_SPLIT_METHOD splitMethod;
+	KDTreeNode head = NULL;
+
+	//Check the number of arguments the user entered
+	if(argc == 3)//The user entered command line arguments, meaning the config file path
+	{
+		if(!strcmp(argv[1],"-c"))
+		{
+			configPath = argv[2];
+		}
+	}
+	else if(argc == 1)//The user DIDN'T enter a config file path, so we take the default
+	{
+		strcpy(configPath,"spcbir.config");
+	}
+	else //The user entered more than 2 command line arguments, error
+	{
+		printf("Invalid command line : use -c <config_filename>\n");
+		leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+		return 0;
+	}
+
+	//Creating the config file
+	config = spConfigCreate(configPath,&configMsg);
+	//Checking if creating it failed
+	if (config == NULL && configMsg == SP_CONFIG_CANNOT_OPEN_FILE)
+	{
+		printFailedCreatingMessage(configPath);
+		leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+		return 0;
+	}
+
+	//Create the image processing object
+	ImageProc proc = ImageProc(config);
+
+	//Getting the images' details
+	getNumOfImagesWrapper(&numOfImages, config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS){
+		leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+		return 0;
+	}
+
+	int numOfFeatsPerImage[numOfImages];
+	getNumOfFeatsWrapper(&numOfFeats, config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS){
+		leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+		return 0;
+	}
+
+	getNumOfSimilarImagesWrapper(&numOfSimilarImages, config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS){
+		leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+		return 0;
+	}
+
+	//Create array to store the images
+	imagesPointsArray = (SPPoint**)malloc(numOfImages*sizeof(SPPoint*));
+	//Check if we are in extraction mode
+	if (spConfigIsExtractionMode(config,&configMsg)) {
+		for (int i = 0; i < numOfImages; i++)  //Go over all of the images and write the feats file
+		{
+			getImagePathWrapper(i, &configMsg, path, config, writingFile);
+			if (configMsg != SP_CONFIG_SUCCESS){
+				leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+				return 0;
+			}
+
+			*(imagesPointsArray+i) = proc.getImageFeatures(path,i,&numOfExtFeats); 	//extracting the image features
+			totalNumOfFeats += numOfExtFeats;
+			*(numOfFeatsPerImage+i) = numOfExtFeats;
+			getFeatsPathWrapper(i, &configMsg, path, config, writingFile); 	//Getting the feats file path
+			if (configMsg != SP_CONFIG_SUCCESS){
+				leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+				return 0;
+			}
+			writingFile = fopen(path,"w");
+			if (writingFile == NULL)
+			{
+				spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
+				leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+				return 0;
+			}
+			writeFeatsToFile(writingFile,*(imagesPointsArray+i),numOfExtFeats);
+		}
+
+			fclose(writingFile);
+
+			imagesForTreeInit = (SPPoint*)malloc(sizeof(SPPoint)*totalNumOfFeats);
+			for (int i = 0; i < numOfImages; i++) {
+				for (int j = 0; j < numOfFeatsPerImage[i]; j++)
+				{
+					*(imagesForTreeInit+count) = spPointCopy(imagesPointsArray[i][j]);
+					count++;
+				}
+			}
+		}
+		else //non-Extraction mode
+		{
+			//Go over all the images
+			for (int i = 0; i < numOfImages; i++)
+			{
+				//Get the feats path of each image
+				getFeatsPathWrapper(i, &configMsg, path, config, writingFile); 	//Getting the feats file path
+				if (configMsg != SP_CONFIG_SUCCESS){
+					leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+					return 0;
+				}
+
+				readingFile = fopen(path,"r");
+				if (readingFile == NULL)
+				{
+					spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
+					leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+					return 0;
+				}
+				*(imagesPointsArray+i) = readFeatsFromFile(readingFile,(numOfFeatsPerImage+i));
+				totalNumOfFeats += *(numOfFeatsPerImage+i);
+			}
+
+			fclose(readingFile);
+			imagesForTreeInit = (SPPoint*)malloc(sizeof(SPPoint)*totalNumOfFeats);
+
+			for (int i = 0; i < numOfImages; ++i)
+			{
+				for (int j = 0; j < *(numOfFeatsPerImage+i); ++j)
+				{
+					imagesForTreeInit[count] = spPointCopy(*( *(imagesPointsArray+i) +j ));
+					count++;
+				}
+			}
+		}
+
+		//Initialize KDtree of images
+		kdArr = init(imagesForTreeInit, totalNumOfFeats);
+		if (kdArr == NULL)
+		{
+			spLoggerPrintError("Failed to load images to data structure","main.c",__func__,__LINE__);
+			leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+			return 0;
+		}
+		splitMethod = SPConfigGetSplitMethod(config, &configMsg);
+		if(configMsg != SP_CONFIG_SUCCESS){
+			spLoggerPrintError("problem with getting the split method from configuration","main.c",__func__,__LINE__);
+			leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+			return 0;
+		}
+		head = buildKDTree(kdArr, config, splitMethod);
+		if (head == NULL)
+		{
+			spLoggerPrintError("Failed to load images to data structure","main.c",__func__,__LINE__);
+			leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+			return 0;
+		}
+		//loop for receiving a query image from the user
+		//This loop keeps going until the user enters the exit string <>
+		loopForQueries(head, path, numOfImages, numOfExtFeats, numOfSimilarImages, config, &configMsg, proc);
+
 	return 0;
 }
-*/
+
+

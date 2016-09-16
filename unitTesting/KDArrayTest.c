@@ -1,15 +1,21 @@
 /*
- * KDArrayTest.c
- *
- *  Created on: Aug 27, 2016
- *      Author: Itai Shchorry
- */
+
+ KDArrayTest.c
+ Created on: Aug 27, 2016
+ Author: Itai Shchorry
+*/
+
 #include "testingUtils.h"
+#include "../KDArray.h"
+#include "../SPConfig.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "../KDArray.h"
-#include "../HelperFunctions.c"
+
+typedef struct
+{
+  double data[2];
+} Tuple;
 
 
 
@@ -23,8 +29,8 @@ int cmpThirdDim (const void* a, const void* b)
 
 
 static bool KDArrayTest(){
-	SP_TREE_MSG msg;
-	ASSERT_TRUE(init(NULL, 10, &msg) == NULL);
+
+	ASSERT_TRUE(init(NULL, 10) == NULL);
 
 	SPPoint* arr = (SPPoint*) malloc(50*sizeof(SPPoint));
 	if(arr == NULL) return NULL;
@@ -50,25 +56,25 @@ static bool KDArrayTest(){
 		(*(arr3 + i)).data[0] = *(dataTemp+2); //value
 		(*(arr3 + i)).data[1] = i; //index
 
-/*		printf("1st dim in %d element in the array is %f\n", i, spPointGetAxisCoor(*(arr + i), 0));
+		printf("1st dim in %d element in the array is %f\n", i, spPointGetAxisCoor(*(arr + i), 0));
 		fflush(NULL);
 		printf("2nd dim in %d element in the array is %f\n", i, spPointGetAxisCoor(*(arr + i), 1));
 		fflush(NULL);
 		printf("3rd dim in %d element in the array is %f\n\n", i, spPointGetAxisCoor(*(arr + i), 2));
-		fflush(NULL);*/
+		fflush(NULL);
 	}
 
 
 	qsort(arr3, 50, sizeof(Tuple), cmpTuples);
-/*
+
 	for(i=0; i < 50; i++){ //check arr3 is ordered
 		printf("value is %f and index is %d\n", (*(arr3 + i)).data[0], (int)(*(arr3 + i)).data[1]);
 		fflush(NULL);
 	}
-*/
+
 
 	//create KDArray, and check correctness of rows
-	KDArray kd = init(arr, 50, &msg);
+	KDArray kd = init(arr, 50);
 	int** points = KDGetArray(kd); //entire indexArray. now we'll get each row separately
 	for(i=0; i < 50; i++){
 		int a = *(arr1+i);
@@ -118,26 +124,26 @@ static bool KDArrayTest(){
 	}
 
 	//
-/*	free(arr);*/
+	free(arr);
 	free(arr1);
 	free(arr2);
 	free(arr3); //need to free each item and then free pointer
-	KDDestroy(kd);
-/*	KDDestroy(*kdSplit1); //currently i just assigned new space without copying the information. to copy the info, i need to use memcpy
-	KDDestroy(*(kdSplit1+1));
-	KDDestroy(*kdSplit2);
-	KDDestroy(*(kdSplit2+1));
-	KDDestroy(*kdSplit3);
-	KDDestroy(*(kdSplit3+1));
+	KDArrayDestroy(kd);
+	KDArrayDestroy(*kdSplit1); //currently i just assigned new space without copying the information. to copy the info, i need to use memcpy
+	KDArrayDestroy(*(kdSplit1+1));
+	KDArrayDestroy(*kdSplit2);
+	KDArrayDestroy(*(kdSplit2+1));
+	KDArrayDestroy(*kdSplit3);
+	KDArrayDestroy(*(kdSplit3+1));
 	free(kdSplit1);
 	free(kdSplit2);
-	free(kdSplit3);*/
+	free(kdSplit3);
 
 	return 1;
 }
 
-int main(){
+/*int main(){
 	RUN_TEST(KDArrayTest);
 
 	return 1;
-}
+}*/

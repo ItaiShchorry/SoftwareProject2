@@ -4,11 +4,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "SPLogger.h"
 #include <String.h>
-#include <string.h>
 #include <assert.h>
 #include <ctype.h>
+
 
 /**
  * A data-structure which is used for configuring the system.

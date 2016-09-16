@@ -1,5 +1,5 @@
 #include "SPConfig.h"
-
+#include "SPLogger.h"
 
 struct sp_config_t{
 	char* spImagesDirectory;
@@ -18,11 +18,30 @@ struct sp_config_t{
 	char* spLoggerFilename;
 };
 
+//initialize all default values and allocate wanted memory space
+void SPConfigInitialize(SPConfig config){
+	config->spImagesDirectory = (char*) malloc(sizeof(char)*MAX_LEN);
+	config->spImagesPrefix = (char*) malloc(sizeof(char)*MAX_LEN);
+	config->spImagesSuffix = (char*) malloc(sizeof(char)*MAX_LEN);
+	config->spPCADimension = 20;
+	config->spPCAFilename = "pca.yml";
+	config->spNumOfFeatures = 100;
+	config->spExtractionMode = true;
+	config->spNumOfSimilarImages = 5;
+	config->spKDTreeSplitMethod = RANDOM;
+	config->spKNN = 3;
+	config->spMinimalGUI = true;
+	config->spLoggerLevel = 4;
+	config->spLoggerFilename = (char*) malloc(sizeof(char)*MAX_LEN);
+	config->spLoggerFilename = "stdout";
+}
 
 
 SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
+	char* env_var;
+	char* param;
 	if (filename == NULL)
 		{
 			*msg = SP_CONFIG_INVALID_ARGUMENT;
@@ -43,28 +62,12 @@ SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg)
 			goto leave;
 		}
 
-	config->spImagesDirectory = (char*) malloc(sizeof(char)*MAX_LEN);
-	config->spImagesPrefix = (char*) malloc(sizeof(char)*MAX_LEN);
-	config->spImagesSuffix = (char*) malloc(sizeof(char)*MAX_LEN);
-	config->spPCADimension = 20;
-	config->spPCAFilename = "pca.yml";
-	config->spNumOfFeatures = 100;
-	config->spExtractionMode = true;
-	config->spNumOfSimilarImages = 5;
-	config->spKDTreeSplitMethod = RANDOM;
-	config->spKNN = 3;
-	config->spMinimalGUI = true;
-	config->spLoggerLevel = 4;
-	config->spLoggerFilename = (char*) malloc(sizeof(char)*MAX_LEN);
-	config->spLoggerFilename = "stdout";
-
-
+	SPConfigInitialize(config);
 
 	char line[MAX_LEN] = "";
-
 	const char delim[2] = "=";
-	char* env_var = (char*) malloc(MAX_LEN*sizeof(char));
-	char* param = (char*) malloc(MAX_LEN*sizeof(char));
+	env_var = (char*) malloc(MAX_LEN*sizeof(char));
+	param = (char*) malloc(MAX_LEN*sizeof(char));
 
 	SP_CONFIG_MSG changeFieldMsg;
 
@@ -116,7 +119,6 @@ SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg)
 
 		goto leave;
 	}
-
 
 leave:
 	if (input != NULL)fclose(input);

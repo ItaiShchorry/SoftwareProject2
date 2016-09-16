@@ -13,44 +13,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../KDArray.h"
-#include "../HelperFunctions.c"
 #include "../KDTree.h"
+#include "../SPConfig.h"
 
 
 
-void printTree(KDTreeNode node,char* rightspaces) {
-		   if (node==NULL)return;
-
-		   printf("%s%f", rightspaces, KDTreeGetVal(node));
-		   fflush(NULL);
-		   KDTreeNode right = KDTreeGetRight(node);
-		   char* m = strcat(rightspaces,"     ");
-		   if (right !=NULL){
-			   printTree(right,m);
-		   }
-		   KDTreeNode left = KDTreeGetLeft(node);
-		   if (left!=NULL){
-/*			   char* a[strlen(rightspaces) - 6];*/
-	/*		   char* rightspaces1[strlen(rightspaces) - 5]("\0", "  ");*/
-			   printTree(KDTreeGetLeft(node),rightspaces);
-		   }
-		   }
-void printTreeTest(KDTreeNode tree){
-		if(tree == NULL) return;
-/*		ASSERT_TRUE(tree.search(22));
-		ASSERT_TRUE(tree.search(24));
-		ASSERT_TRUE(tree.search(30));
-		int ab[4]={1,2,3,4};
-		/*(Arrays.toString(ab));*/
-		printTree(KDTreeGetLeft(tree), "                                          ");
-		printTree(KDTreeGetLeft(tree), "                                          ");
-	}
-
+void printTree(KDTreeNode node, int size) {
+/*	char* str[size*2] = " "*2;
+	if (node==NULL)return;
+		   printTree(KDTreeGetLeft(node));
+		   printf("")
+		   }*/
+}
 
 static bool KDTreeTest(){
-	SP_TREE_MSG msg;
-	ASSERT_TRUE(buildKDTree(NULL, NULL, &msg) == NULL);
 
+	ASSERT_TRUE(buildKDTree(NULL, NULL, RANDOM) == NULL);
 	SPPoint* arr = (SPPoint*) malloc(10*sizeof(SPPoint)); //check for 2 dimensions with 10 points
 	if(arr == NULL) return NULL;
 	int i=0;
@@ -74,8 +52,8 @@ static bool KDTreeTest(){
 
 
 	//create KDArray and KDTree
-	KDArray kd = init(arr, 10, &msg);
-	KDTreeNode tree = buildKDTree(kd, NULL, &msg); //reminder - fix enums of functions
+	KDArray kd = init(arr, 10);
+	KDTreeNode tree = buildKDTree(kd, NULL, RANDOM); //reminder - fix enums of functions
 	KDTreeNode tempL = KDTreeGetLeft(tree);
 	int median = 3;
 	while((KDTreeGetLeft(tempL) != NULL)){
@@ -99,7 +77,7 @@ static bool KDTreeTest(){
 
 
 	//print entire tree using in-order walk
-	printTree(tree, "         ");
+//	printTree(tree, "                                   ", 35);
 	//free everything
 /*	KDTreeDestroy(tree);*/
 	free(arr);
@@ -107,7 +85,10 @@ static bool KDTreeTest(){
 	return 1;
 }
 
+
 /*int main(){
-	RUN_TEST(KDTreeTest);
-	return 1;
+	char* str = "a         b";
+	sprintf(str, str);
+	printf("%s", str);
 }*/
+

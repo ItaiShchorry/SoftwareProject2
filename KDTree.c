@@ -4,7 +4,7 @@
  *  Created on: Aug 31, 2016
  *      Author: Itai Shchorry
  */
-#include "KDTree.h"
+
 #include "math.h"
 #include <float.h>
 #include "string.h"
@@ -12,10 +12,11 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "SPPoint.h"
+#include "KDTree.h"
 #include "SPListElement.h"
 
-
+#define INVALID_DIM -1
+#define INVALID_VAL DBL_MAX
 
 struct kd_tree_node {
 	int Dim;
@@ -32,7 +33,7 @@ KDTreeNode KDTreeNodeInit(int dim, int val, KDTreeNode left, KDTreeNode right, S
 	res->Val = val;
 	res->Left = left;
 	res->Right = right;
-	res->Data = point;
+	res->Data = spPointCopy(point);
 	return res;
 }
 
@@ -114,6 +115,9 @@ KDTreeNode buildKDTreeRec(KDArray kd, int (*func) (KDArray)){ //arguments for KD
 		int halfRoundUp = ((size + 1) / 2) - 1;
 		double resVal = spPointGetAxisCoor(*(KDGetP(kd) + halfRoundUp), splitDim);
 		res = KDTreeNodeInit(splitDim, resVal, resLeft, resRight, NULL);
+		freePointersOfKDArray(*splitted);
+		freePointersOfKDArray(*(splitted+1));
+		free(splitted);
 		return res;
 	}
 }
@@ -121,18 +125,9 @@ KDTreeNode buildKDTreeRec(KDArray kd, int (*func) (KDArray)){ //arguments for KD
 
 
 
-KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_MSG* msg){
-	if(kd == NULL){
-		*msg = SP_CONFIG_INVALID_ARGUMENT;
-		return NULL;
-	}
-
+KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_SPLIT_METHOD splitMethod){
 	int (*foo) (KDArray);
-	SP_TREE_SPLIT_METHOD splitMethod = SPConfigGetSplitMethod(config, msg);
-	if (*msg != SP_TREE_SUCCESS){
-		//write what we want to happen. probably ok as it is.
-		return NULL;
-	}
+	int (*func) (KDArray);
 	switch(splitMethod){
 	case RANDOM:
 		foo = randomFunc;
@@ -147,15 +142,7 @@ KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_MSG* msg){
 	}
 
 	KDTreeNode result = buildKDTreeRec(kd, foo);
-	if(result != NULL){
-		*msg = SP_CONFIG_SUCCESS;
-		return result;
-	}
-	else{
-		*msg = SP_TREE_BUILD_FAILURE;
-		return NULL;
-	}
-
+	return result;
 }
 
 bool isLeaf(KDTreeNode node){

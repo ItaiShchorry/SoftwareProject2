@@ -5,13 +5,13 @@
  *      Author: Itai Shchorry
  */
 
-#include "KDArray.h"
-#include "SPConfig.h"
 #include "string.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include "SPBPriorityQueue.h"
+#include "KDArray.h"
+#include "SPConfig.h"
 
 #ifndef KDTREE_H_
 #define KDTREE_H_
@@ -65,7 +65,7 @@ double KDTreeGetVal(KDTreeNode node);
  * 	NULL - If allocations failed or kd is NULL
  * 	A new KDArray in case of success.
  */
-KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_MSG* msg);
+KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_SPLIT_METHOD splitMethod);
 
 /**
  * returns the K nearest neighbors of p that are in KDTree that node is head of
