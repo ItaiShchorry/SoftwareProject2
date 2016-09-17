@@ -20,15 +20,14 @@ SPPoint spPointCreate(double* data, int dim, int index){
 
 	//Allocating memory for the point data
 	int i;
-	double* newData = (double*) malloc(sizeof(double)*dim);
-	if (newData == NULL){
+	point->data = (double*) malloc(sizeof(double)*dim);
+	if (point->data == NULL){
 		return NULL;
 	}
 	//Copying the point data
-	for (i=0 ; i<dim ; i++)newData[i] = data[i];
+	for (i=0 ; i<dim ; i++) (point->data)[i] = data[i];
 
 	//Inserting the fields into the new point fields
-	point->data = newData;
 	point->index = index;
 	point->dim = dim;
 
@@ -38,7 +37,6 @@ SPPoint spPointCreate(double* data, int dim, int index){
 SPPoint spPointCopy(SPPoint source){
 	assert(source != NULL);
 	SPPoint pointCpy = spPointCreate(source->data , source->dim , source->index);
-	if (pointCpy == NULL)return NULL;
 	return pointCpy;
 }
 
@@ -60,12 +58,12 @@ int spPointGetIndex(SPPoint point){
 	return result;
 }
 double spPointGetAxisCoor(SPPoint point, int axis){
-	assert ((point != NULL) && (axis < ((int)point->dim)));
+	assert ((point != NULL) && (axis < ((int)(point->dim))));
 	int result = point->data[axis];
 	return result;
 }
 double spPointL2SquaredDistance(SPPoint p, SPPoint q){
-	assert (p != NULL && q != NULL && p->dim == q->dim);
+	assert ((p != NULL) && (q != NULL) && (p->dim == q->dim));
 
 	double result=0;
 	double temp=0;

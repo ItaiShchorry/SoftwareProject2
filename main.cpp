@@ -105,8 +105,10 @@ int main(int argc, char *argv[])
 	char* configPath = (char*) malloc(sizeof(char)*MAX_LEN);
 	SP_CONFIG_MSG configMsg;
 	SPConfig config;
-	int numOfImages, numOfFeats,totalNumOfFeats,count=0;
-	int numOfExtFeats;
+	int numOfImages = 0;
+	int count=0;
+	int totalNumOfFeats = 0;
+	int numOfExtFeats = 0;
 	int numOfSimilarImages=0;
 	char* path = (char*) malloc(sizeof(char)*MAX_LEN);
 	SPPoint** imagesPointsArray = NULL;
@@ -186,9 +188,9 @@ int main(int argc, char *argv[])
 				return 0;
 			}
 
-			imagesPointsArray[i] = proc.getImageFeatures(path,i,&numOfExtFeats); 	//extracting the image features
+			*(imagesPointsArray+i) = proc.getImageFeatures(path,i,&numOfExtFeats); 	//extracting the image features
 			totalNumOfFeats += numOfExtFeats;
-			*(numOfFeatsPerImage+i) = numOfExtFeats;
+			numOfFeatsPerImage[i] = numOfExtFeats;
 			getFeatsPathWrapper(i, &configMsg, path, config, writingFile); 	//Getting the feats file path
 			if (configMsg != SP_CONFIG_SUCCESS){
 				leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
@@ -245,7 +247,7 @@ int main(int argc, char *argv[])
 			{
 				for (int j = 0; j < *(numOfFeatsPerImage+i); j++)
 				{
-					imagesForTreeInit[count] = spPointCopy(*( *(imagesPointsArray+i) +j ));
+					imagesForTreeInit[count] = spPointCopy(imagesPointsArray[i][j]);
 					count++;
 				}
 			}

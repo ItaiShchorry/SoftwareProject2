@@ -80,6 +80,14 @@ void freePointersOfKDArray(KDArray kd){
 
 KDArray init(SPPoint* arr, int size){
 	if(arr == NULL) return NULL;
+	int i;
+	int j;
+	double tempCoord;
+	int dim = spPointGetDimension(*arr);
+	int** resArray;
+	Tuple* valuesArray;
+	int* tempArray;
+	int k;
 
 	//initialize KDArray
 	KDArray res = (KDArray) malloc(sizeof(*res));
@@ -87,22 +95,22 @@ KDArray init(SPPoint* arr, int size){
 
 	SPPoint* P = (SPPoint*) malloc(size*sizeof(SPPoint));
 	if(P == NULL) return NULL;
-	memcpy(&P, &arr, sizeof(arr));
+	for(i=0; i<size; i++){
+		*(P+i) = spPointCopy(*(arr+i));
+	}
 
 	//allocate memory for array
-	int dim = spPointGetDimension(*P);
-	int** resArray = (int**) malloc(dim*sizeof(int*));
+	resArray = (int**) malloc(dim*sizeof(int*));
 	if(resArray == NULL) return NULL;
 
 	//making the d x n matrix
-	Tuple* valuesArray = (Tuple*) malloc(size*sizeof(Tuple)); //value of ith dimension and index of each point
+	valuesArray = (Tuple*) malloc(size*sizeof(Tuple)); //value of ith dimension and index of each point
 	if(valuesArray == NULL) return NULL;
 
-	int i=0;
-	int j;
-	double tempCoord;
-	for(; i < dim; i++){
-		int* tempArray = (int*) malloc(size*sizeof(int)); //will hold correct order for each dimension
+
+
+	for(i=0; i < dim; i++){
+		tempArray = (int*) malloc(size*sizeof(int)); //will hold correct order for each dimension
 		if(tempArray == NULL) return NULL;
 		for(j=0; j < size; j++){ //fill valuesArray
 			tempCoord = spPointGetAxisCoor(*(P+j), i);
@@ -116,7 +124,6 @@ KDArray init(SPPoint* arr, int size){
 			fflush(NULL);
 		}*/
 
-		int k;
 		for(j=0; j < size; j++){ //write the information to tempArray
 			k = (int)(*(valuesArray + j)).data[1];
 			*(tempArray + j) = k;
@@ -135,10 +142,7 @@ KDArray init(SPPoint* arr, int size){
 	res->indexArray = resArray;
 
 	//freeing all buffers
-
-	for(i=0; i<size; i++){
-		free((valuesArray+i));
-	}
+	free(valuesArray);
 	return res;
 }
 
