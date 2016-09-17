@@ -7,6 +7,7 @@
 #include <String.h>
 #include <assert.h>
 #include <ctype.h>
+#include "SPLogger.h"
 
 
 /**
@@ -276,4 +277,21 @@ SP_TREE_SPLIT_METHOD SPConfigGetSplitMethod(SPConfig config, SP_CONFIG_MSG* msg)
  * @return spKNN given from config file
  */
 int SPConfigGetspKNN(SPConfig config, SP_CONFIG_MSG* msg);
+
+/*
+ * getter for SPLogger filename
+ * @param config - the configuration file
+ * @return name of SPLogger used by the configuration file
+ */
+
+char* spConfigGetLoggerFilename(const SPConfig config);
+
+/*
+ * getter for SPLogger level
+ * @param config - the configuration file
+ * @return level of SPLogger
+ */
+
+SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config);
+
 #endif /* SPCONFIG_H_ */

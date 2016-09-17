@@ -12,7 +12,7 @@ struct sp_point_t {
 
 SPPoint spPointCreate(double* data, int dim, int index){
 
-	if ((data==NULL || dim<=0) || index <= 0) return NULL;
+	if ((data==NULL || dim<=0) || index < 0) return NULL;
 
 	//Allocating memory for the point itself
 	SPPoint point = (SPPoint) malloc(sizeof(*point));
@@ -39,7 +39,6 @@ SPPoint spPointCopy(SPPoint source){
 	assert(source != NULL);
 	SPPoint pointCpy = spPointCreate(source->data , source->dim , source->index);
 	if (pointCpy == NULL)return NULL;
-	//Creating a new point from the source data
 	return pointCpy;
 }
 
@@ -61,7 +60,7 @@ int spPointGetIndex(SPPoint point){
 	return result;
 }
 double spPointGetAxisCoor(SPPoint point, int axis){
-	assert (point != NULL && axis < (int)point->dim);
+	assert ((point != NULL) && (axis < ((int)point->dim)));
 	int result = point->data[axis];
 	return result;
 }

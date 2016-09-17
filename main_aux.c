@@ -93,7 +93,7 @@ void writeFeatsToFile(FILE* writerFile,SPPoint* point,int numOfFeats)
 	{
 		for (j = 0; j < imageDim; j++)
 		{
-			sprintf(stringToPrint,"%f%s",spPointGetAxisCoor(point[j],i),"\n");
+			sprintf(stringToPrint,"%f%s",spPointGetAxisCoor(point[i],j),"\n");
 			fputs(stringToPrint,writerFile);
 		}
 	}

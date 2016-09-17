@@ -102,14 +102,11 @@ void loopForQueries(KDTreeNode head, char* path, int numOfImages, int numOfExtFe
 
 int main(int argc, char *argv[])
 {
-	//Creating the log file and logger object
-	spLoggerCreate("SPCBIR Log",SP_LOGGER_INFO_WARNING_ERROR_LEVEL);
-
-	//MUST declare all variables before first label jump, otherwise it's a compiler error
 	char* configPath = (char*) malloc(sizeof(char)*MAX_LEN);
 	SP_CONFIG_MSG configMsg;
 	SPConfig config;
-	int numOfImages, numOfFeats,numOfExtFeats,totalNumOfFeats,count=0;
+	int numOfImages, numOfFeats,totalNumOfFeats,count=0;
+	int numOfExtFeats;
 	int numOfSimilarImages=0;
 	char* path = (char*) malloc(sizeof(char)*MAX_LEN);
 	SPPoint** imagesPointsArray = NULL;
@@ -149,6 +146,9 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
+	//Creating the log file and logger object
+	spLoggerCreate(spConfigGetLoggerFilename(config),spConfigGetLoggerLevel(config));
+
 	//Create the image processing object
 	ImageProc proc = ImageProc(config);
 
@@ -160,17 +160,19 @@ int main(int argc, char *argv[])
 	}
 
 	int numOfFeatsPerImage[numOfImages];
+/*
 	getNumOfFeatsWrapper(&numOfFeats, config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS){
 		leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
 		return 0;
 	}
+*/
 
-	getNumOfSimilarImagesWrapper(&numOfSimilarImages, config, &configMsg);
+/*	getNumOfSimilarImagesWrapper(&numOfSimilarImages, config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS){
 		leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
 		return 0;
-	}
+	}*/
 
 	//Create array to store the images
 	imagesPointsArray = (SPPoint**)malloc(numOfImages*sizeof(SPPoint*));
@@ -184,7 +186,7 @@ int main(int argc, char *argv[])
 				return 0;
 			}
 
-			*(imagesPointsArray+i) = proc.getImageFeatures(path,i,&numOfExtFeats); 	//extracting the image features
+			imagesPointsArray[i] = proc.getImageFeatures(path,i,&numOfExtFeats); 	//extracting the image features
 			totalNumOfFeats += numOfExtFeats;
 			*(numOfFeatsPerImage+i) = numOfExtFeats;
 			getFeatsPathWrapper(i, &configMsg, path, config, writingFile); 	//Getting the feats file path
@@ -239,9 +241,9 @@ int main(int argc, char *argv[])
 			fclose(readingFile);
 			imagesForTreeInit = (SPPoint*)malloc(sizeof(SPPoint)*totalNumOfFeats);
 
-			for (int i = 0; i < numOfImages; ++i)
+			for (int i = 0; i < numOfImages; i++)
 			{
-				for (int j = 0; j < *(numOfFeatsPerImage+i); ++j)
+				for (int j = 0; j < *(numOfFeatsPerImage+i); j++)
 				{
 					imagesForTreeInit[count] = spPointCopy(*( *(imagesPointsArray+i) +j ));
 					count++;

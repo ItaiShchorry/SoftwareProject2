@@ -1,13 +1,13 @@
 #include "SPConfig.h"
-#include "SPLogger.h"
+
 
 struct sp_config_t{
-	char* spImagesDirectory;
-	char* spImagesPrefix;
-	char* spImagesSuffix;
+	char spImagesDirectory[MAX_LEN];
+	char spImagesPrefix[MAX_LEN];
+	char spImagesSuffix[MAX_LEN];
 	int spNumOfImages;
 	int spPCADimension;
-	char* spPCAFilename;
+	char spPCAFilename[MAX_LEN];
 	int spNumOfFeatures;
 	bool spExtractionMode;
 	int spNumOfSimilarImages;
@@ -15,32 +15,28 @@ struct sp_config_t{
 	int spKNN;
 	bool spMinimalGUI;
 	int spLoggerLevel;
-	char* spLoggerFilename;
+	char spLoggerFilename[MAX_LEN];
 };
 
 //initialize all default values and allocate wanted memory space
 void SPConfigInitialize(SPConfig config){
-	config->spImagesDirectory = (char*) malloc(sizeof(char)*MAX_LEN);
-	config->spImagesPrefix = (char*) malloc(sizeof(char)*MAX_LEN);
-	config->spImagesSuffix = (char*) malloc(sizeof(char)*MAX_LEN);
 	config->spPCADimension = 20;
-	config->spPCAFilename = "pca.yml";
+	strcpy(config->spPCAFilename, "pca.yml");
 	config->spNumOfFeatures = 100;
 	config->spExtractionMode = true;
-	config->spNumOfSimilarImages = 5;
-	config->spKDTreeSplitMethod = RANDOM;
-	config->spKNN = 3;
-	config->spMinimalGUI = true;
-	config->spLoggerLevel = 4;
-	config->spLoggerFilename = (char*) malloc(sizeof(char)*MAX_LEN);
-	config->spLoggerFilename = "stdout";
+	config->spNumOfSimilarImages = 1;
+	config->spKDTreeSplitMethod = MAX_SPREAD;
+	config->spKNN = 1;
+	config->spMinimalGUI = false;
+	config->spLoggerLevel = 3;
+	strcpy(config->spLoggerFilename, "stdout");
 }
 
 
 SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
-	char* env_var;
+	char* env_var = (char*) malloc(MAX_LEN*sizeof(char));
 	char* param;
 	if (filename == NULL)
 		{
@@ -66,8 +62,6 @@ SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg)
 
 	char line[MAX_LEN] = "";
 	const char delim[2] = "=";
-	env_var = (char*) malloc(MAX_LEN*sizeof(char));
-	param = (char*) malloc(MAX_LEN*sizeof(char));
 
 	SP_CONFIG_MSG changeFieldMsg;
 
@@ -79,9 +73,9 @@ SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg)
 
 		char commentCheck[2];
 		commentCheck[0] = trimWhiteSpace(line)[0];
-		if (strcmp(line,"") ||
-			strcmp(commentCheck,"#")) //check for comments and empty lines
+		if (strcmp(line,"") && strcmp(commentCheck,"#")) //check for comments and empty lines
 		{
+			param = (char*) malloc(MAX_LEN*sizeof(char));
 			sprintf(env_var,"%s",strtok(line,delim));
 			sprintf(param,"%s",strtok(NULL,delim));
 
@@ -124,13 +118,11 @@ leave:
 	if (input != NULL)fclose(input);
 	spLoggerDestroy();
 	free(env_var);
-	free(param);
 	return config;
 }
 
 bool spConfigIsExtractionMode(const SPConfig config, SP_CONFIG_MSG* msg)
 {
-
 	bool returnValue = false;
 	assert(msg != NULL);
 	if (config == NULL)
@@ -238,7 +230,6 @@ SP_CONFIG_MSG spConfigGetFeatsPath(char* imagePath, const SPConfig config, int i
 			returnValue = SP_CONFIG_INDEX_OUT_OF_RANGE;
 			goto leave;
 		}
-	imagePath = (char*) malloc(sizeof(char)*MAX_LEN);
 
 	sprintf(imagePath,"%s%s%d%s",config->spImagesDirectory,config->spImagesPrefix,index,".feats");
 
@@ -259,7 +250,6 @@ SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config, int i
 		returnValue = SP_CONFIG_INDEX_OUT_OF_RANGE;
 		goto leave;
 	}
-	imagePath = (char*) malloc(sizeof(char)*MAX_LEN);
 
 	sprintf(imagePath,"%s%s%d%s",config->spImagesDirectory,config->spImagesPrefix,index,config->spImagesSuffix);
 
@@ -275,8 +265,6 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config)
 		returnValue = SP_CONFIG_INVALID_ARGUMENT;
 		goto leave;
 		}
-
-	pcaPath = (char*) malloc(sizeof(char)*MAX_LEN);
 
 	sprintf(pcaPath,"%s%s",config->spImagesDirectory,config->spPCAFilename);
 
@@ -331,6 +319,7 @@ void printRegErr(char* file, int line, SP_CONFIG_MSG errorType)
 	}
 
 	printf(msg);
+	free(msg);
 }
 
 char* trimWhiteSpace(char* str)
@@ -355,19 +344,19 @@ SP_CONFIG_ENV_VAR getSPConfigEnvVar(char* field)
 	SP_CONFIG_ENV_VAR return_value;
 
 		if (!strcmp(field,"spImagesDirectory")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spImagesPrefix")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spImagesSuffix")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spNumOfImages")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spPCADimension")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spPCAFilename")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spNumOfFeatures")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spExtractionMode")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spNumOfSimilarImages")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spKDTreeSplitMethod")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spKNN")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spMinimalGUI")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spLoggerLevel")) return_value = EnumspImagesDirectory;
-		if (!strcmp(field,"spLoggerFilename")) return_value = EnumspImagesDirectory;
+		else if (!strcmp(field,"spImagesPrefix")) return_value = EnumspImagesPrefix;
+		else if (!strcmp(field,"spImagesSuffix")) return_value = EnumspImagesSuffix;
+		else if (!strcmp(field,"spNumOfImages")) return_value = EnumspNumOfImages;
+		else if (!strcmp(field,"spPCADimension")) return_value = EnumspPCADimension;
+		else if (!strcmp(field,"spPCAFilename")) return_value = EnumspPCAFilename;
+		else if (!strcmp(field,"spNumOfFeatures")) return_value = EnumspNumOfFeatures;
+		else if (!strcmp(field,"spExtractionMode")) return_value = EnumspExtractionMode;
+		else if (!strcmp(field,"spNumOfSimilarImages")) return_value = EnumspNumOfSimilarImages;
+		else if (!strcmp(field,"spKDTreeSplitMethod")) return_value = EnumspKDTreeSplitMethod;
+		else if (!strcmp(field,"spKNN")) return_value = EnumspKNN;
+		else if (!strcmp(field,"spMinimalGUI")) return_value = EnumspMinimalGUI;
+		else if (!strcmp(field,"spLoggerLevel")) return_value = EnumspLoggerLevel;
+		else if (!strcmp(field,"spLoggerFilename")) return_value = EnumspLoggerFilename;
 
 		return return_value;
 }
@@ -383,40 +372,33 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		{
 			if (strchr(param,' ') == NULL || strchr(param,'\t')) //no whitespaces
 			{
-				config->spImagesDirectory = param;
-				break;
+				strcpy(config->spImagesDirectory,param);
 			}
 			else //contains whitespaces
 			{
 				return_value = SP_CONFIG_INVALID_STRING;
-				break;
 			}
 		}
 		else //empty
 			{
 				return_value = SP_CONFIG_MISSING_DIR;
-				break;
 			}
 		break;
-
 	case EnumspImagesPrefix:
 		if (strcmp(param,""))//not empty
 			{
 			if (strchr(param,' ') == NULL || strchr(param,'\t')) //no whitespaces
 				{
-				config->spImagesPrefix = param;
-				break;
+				strcpy(config->spImagesPrefix ,param);
 				}
 				else //contains whitespaces
 				{
 					return_value = SP_CONFIG_INVALID_STRING;
-					break;
 				}
 			}
 		else //empty
 			{
 			return_value = SP_CONFIG_MISSING_PREFIX;
-			break;
 			}
 		break;
 
@@ -427,20 +409,17 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 				{
 				if (strcmp(param,".jpg") || strcmp(param,".png") || strcmp(param,".bmp") || strcmp(param,".gif")) // is in the right format
 					{
-					config->spImagesSuffix = param;
-					break;
+					strcpy(config->spImagesSuffix,param);
 					}
 				}
 			else //contains whitespaces OR wrong format
 				{
 				return_value = SP_CONFIG_INVALID_STRING;
-				break;
 				}
 			}
 		else //empty
 			{
 			return_value = SP_CONFIG_MISSING_PREFIX;
-			break;
 			}
 		break;
 
@@ -450,51 +429,43 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 			if (atoi(param)<1)//invalid value
 			{
 				return_value = SP_CONFIG_INVALID_INTEGER;
-				break;
 			}
 			else //valid value
 			{
 				config->spNumOfImages = atoi(param);
-				break;
 			}
 		}
 		else //is empty
 		{
 			return_value = SP_CONFIG_MISSING_NUM_IMAGES;
-			break;
 		}
+		break;
 
 	case EnumspPCADimension:
-
 		if (strcmp(param,"")) //not empty
 			{
 			int intParam = atoi(param);
 			if (intParam<10 || intParam>28) //invalid value
 				{
 				return_value = SP_CONFIG_INVALID_INTEGER;
-				break;
 				}
 			else //valid value
 				{
 				config->spPCADimension = intParam;
-				break;
 				}
 			}
-		break; //is empty
+		break;
 
 	case EnumspPCAFilename:
-
 		if (strcmp(param,""))//not empty
 			{
 			if (strchr(param,' ') == NULL || strchr(param,'\t')) //no whitespaces
 				{
-				config->spPCAFilename = param;
-				break;
+				strcpy(config->spPCAFilename ,param);
 				}
 			else //contains whitespaces
 				{
 				return_value = SP_CONFIG_INVALID_STRING;
-				break;
 				}
 			}
 		break; //is empty, take default value
@@ -506,15 +477,13 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 			if (atoi(param)<1)//invalid value
 				{
 				return_value = SP_CONFIG_INVALID_INTEGER;
-				break;
 				}
 			else //valid value
 				{
 				config->spNumOfFeatures = atoi(param);
-				break;
 				}
 			}
-		break; // is empty, take default value
+		break; //might've took default value if here
 
 	case EnumspExtractionMode:
 		if (strcmp(param,"")) //not empty
@@ -522,20 +491,18 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 			if (!strcmp(param,"true"))//valid value = true
 				{
 				config->spExtractionMode = true;
-				break;
 				}
 			else if (!strcmp(param,"false"))
 					{
 					config->spExtractionMode = false;
-					break;
 					}
-					else //invalid value
+			else //invalid value
 					{
 					return_value = SP_CONFIG_INVALID_STRING;
-					break;
 					}
 			}
-		break; // is empty, take default value
+		break; //might've gotten default value here
+
 
 	case EnumspNumOfSimilarImages:
 		if (strcmp(param,"")) //not empty
@@ -543,17 +510,13 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 					if (atoi(param)<0)//invalid value
 					{
 						return_value = SP_CONFIG_INVALID_INTEGER;
-						break;
 					}
 					else //valid value
 					{
 						config->spNumOfSimilarImages = atoi(param);
-						break;
 					}
 				}
-
-			break; //is empty, take default value
-
+		break; //is empty, take default value
 	case EnumspKDTreeSplitMethod:
 
 		if (!strcmp(param,"RANDOM")){
@@ -564,9 +527,9 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 
 		else if (!strcmp(param,"INCREMENTAL"))
 			{config->spKDTreeSplitMethod = INCREMENTAL;}
-		else{ //not empty, but invalid value
+		else if (strcmp(param,"")){ //not empty, but invalid value
 			return_value = SP_CONFIG_INVALID_STRING;
-
+		}
 		break;
 	case EnumspKNN:
 		if (strcmp(param,"")) //not empty
@@ -574,15 +537,13 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 							if (atoi(param)<1)//invalid value
 							{
 								return_value = SP_CONFIG_INVALID_INTEGER;
-								break;
 							}
 							else //valid value
 							{
 								config->spKNN = atoi(param);
-								break;
 							}
 						}
-					break; // is empty, take default value
+		break; // is empty, take default value
 
 	case EnumspMinimalGUI:
 		if (strcmp(param,"")) //not empty
@@ -590,20 +551,17 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 			if (!strcmp(param,"true"))//valid value = true
 				{
 				config->spMinimalGUI = true;
-				break;
-									}
-									else if (!strcmp(param,"false"))
-									{
-										config->spMinimalGUI = false;
-										break;
-									}
-									else //invalid value
-									{
-										return_value = SP_CONFIG_INVALID_STRING;
-										break;
-									}
-								}
-					break; // is empty, take default value
+			}
+			else if (!strcmp(param,"false"))
+			{
+				config->spMinimalGUI = false;
+			}
+			else //invalid value
+			{
+				return_value = SP_CONFIG_INVALID_STRING;
+			}
+			}
+		break; // is empty, take default value
 
 	case EnumspLoggerLevel:
 
@@ -613,38 +571,33 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 			if (intParam == 1 || intParam == 2 || intParam == 3 || intParam == 4 ) //valid value
 			{
 				config->spLoggerLevel = intParam;
-				break;
 			}
 			else //not empty but invalid value
 			{
 				return_value = SP_CONFIG_INVALID_INTEGER;
-				break;
 			}
 		}
 		break; //is empty, take default value
 
 	case EnumspLoggerFilename:
 		if (strcmp(param,""))//not empty
-						{
-							if (strchr(param,' ') == NULL || strchr(param,'\t')) //no whitespaces
-							{
-								config->spLoggerFilename = param;
-								break;
-							}
-							else //contains whitespaces
-							{
-								return_value = SP_CONFIG_INVALID_STRING;
-								break;
-							}
-						}
-		break; //is empty, take default value
+				{
+					if (strchr(param,' ') == NULL || strchr(param,'\t')) //no whitespaces
+					{
+						strcpy(config->spLoggerFilename,param);
+					}
+					else //contains whitespaces
+					{
+						return_value = SP_CONFIG_INVALID_STRING;
+					}
+				}
+		break;
 	default:
 		return_value = SP_CONFIG_INVALID_LINE;
-		break;
 	}
 
-	}
-return return_value;
+	free(param);
+	return return_value;
 
 }
 
@@ -672,4 +625,23 @@ int SPConfigGetspKNN(SPConfig config, SP_CONFIG_MSG* msg){
 	*msg = SP_CONFIG_SUCCESS;
 	leave:
 	return returnValue;
+}
+
+
+char* spConfigGetLoggerFilename(const SPConfig config){
+	return config->spLoggerFilename;
+}
+
+SP_LOGGER_LEVEL spConfigGetLoggerLevel(const SPConfig config){
+	switch (config->spLoggerLevel){
+	case 0:
+		return SP_LOGGER_ERROR_LEVEL;
+	case 1:
+		return SP_LOGGER_WARNING_ERROR_LEVEL;
+	case 2:
+		return SP_LOGGER_INFO_WARNING_ERROR_LEVEL;
+	case 3:
+		return SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL;
+	}
+	return SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL;
 }
