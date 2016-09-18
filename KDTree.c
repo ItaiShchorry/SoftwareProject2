@@ -164,19 +164,18 @@ bool isLeaf(KDTreeNode node){
 //strictly according to suggested pseudo-code given to us
 void KNearestNeighbors(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
 	if(curr == NULL) return;
-	SPPoint p1 = KDTreeGetData(curr);
-	int currDim = KDTreeGetDim(curr);
-	double currVal = KDTreeGetVal(curr);
+	SPPoint p1 = curr->Data;
 	if(isLeaf(curr)){
 		int data = spPointGetIndex(p1);
 		SPListElement newElem = spListElementCreate(data, spPointL2SquaredDistance(p1, p));
 		spBPQueueEnqueue(bpq, newElem);
+		spListElementDestroy(newElem);
 		return;
 	}
 
 	bool mark = 0; // 0 - left, 1 - right; for going right direction in last part.
-	double coord = spPointGetAxisCoor(p, currDim);
-	if(coord <= currVal){
+	double coord = spPointGetAxisCoor(p, curr->Dim);
+	if(coord <= curr->Val){
 		KNearestNeighbors(curr->Left, bpq, p); //search left subtree
 	}
 	else{
@@ -187,7 +186,7 @@ void KNearestNeighbors(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
 	//check if another search is needed.
 	SPListElement lastElem = spBPQueuePeekLast(bpq);
 	double lastElemVal = spListElementGetValue(lastElem);
-	if((!spBPQueueIsFull(bpq)) || ( (pow(currVal - coord, 2) < lastElemVal) )){
+	if((!spBPQueueIsFull(bpq)) || ( (pow(curr->Val - coord, 2) < lastElemVal) )){
 		if(mark){ //meaning we've been to right side, now go to left side
 			KNearestNeighbors(curr->Left, bpq, p);
 		}
@@ -195,6 +194,7 @@ void KNearestNeighbors(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
 			KNearestNeighbors(curr->Right, bpq, p);
 		}
 	}
+	spListElementDestroy(lastElem);
 }
 
 

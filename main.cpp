@@ -33,26 +33,45 @@ void leaveFunc(char* configPath, char* path, SPPoint** imagesPointsArray, SPPoin
 	spLoggerDestroy();
 }
 
-void loopForQueries(KDTreeNode head, char* path, int numOfImages, int numOfExtFeats, int numOfSimilarImages, SPConfig config, SP_CONFIG_MSG* configMsg, ImageProc proc){
+void loopForQueries(KDTreeNode head, int numOfImages, int numOfSimilarImages, SPConfig config, SP_CONFIG_MSG* configMsg, ImageProc proc){
+	int numOfExtFeats = 0;
+	char* path = (char*)malloc(MAX_LEN*sizeof(char));
 	int max;
 	int maxIndex;
 	int j = 0;
 	int i = 0;
+	int numOfTriesForEnteringPath = 0;
 	int* nearestFeatureCnt;
 	int* mostRankedFeatures;
 	SPBPQueue bpq;
+	SPPoint* featuresOfQueryImage;
 	while(1){
 
 				printf("Please enter an image path:\n");
 				fflush(stdout);
-				strcpy(path ,"C:\\Users\\mally\\workspace2\\FinalProject\\images\\img0.png");
-		/*		scanf("%s",path);*/
-
+				scanf("%s",path);
 				//Check if the user entered the exit string <>
+				featuresOfQueryImage = proc.getImageFeatures(path,numOfImages,&numOfExtFeats);
 				if(!strcmp(path,"<>"))
 				{
 					printf(EXIT_MSG);
 					break;
+				}
+				while((featuresOfQueryImage == NULL)){
+					if(numOfTriesForEnteringPath > 4){
+						printf("exceeded number of tries for entering image path. program will exit\n");
+						printf(EXIT_MSG);
+						break;
+					}
+					numOfTriesForEnteringPath++;
+					printf("invalid image path, please try entering a new path:\n");
+					scanf("%s",path);
+					if(!strcmp(path,"<>"))
+					{
+						printf(EXIT_MSG);
+						break;
+					}
+					featuresOfQueryImage = proc.getImageFeatures(path,numOfImages,&numOfExtFeats);
 				}
 
 				nearestFeatureCnt = (int*)malloc(sizeof(int)*numOfImages);
@@ -62,7 +81,6 @@ void loopForQueries(KDTreeNode head, char* path, int numOfImages, int numOfExtFe
 					nearestFeatureCnt[i] = -1;
 				}
 
-				SPPoint* featuresOfQueryImage = proc.getImageFeatures(path,numOfImages,&numOfExtFeats);
 				for (i = 0; i < numOfExtFeats; ++i) { //count hits per image
 					bpq = spBPQueueCreate(numOfSimilarImages);
 					KNearestNeighbors(head, bpq, *(featuresOfQueryImage+i));
@@ -100,9 +118,11 @@ void loopForQueries(KDTreeNode head, char* path, int numOfImages, int numOfExtFe
 				}
 				else{ // not in minimal-GUI mode
 					printf("Best candidates for - %s - are:\n",path);
+					fflush(NULL);
 					for (i = 0; i < numOfSimilarImages; ++i) {
 						spConfigGetImagePath(path,config,mostRankedFeatures[i]);
 						printf("%s\n",path);
+						fflush(NULL);
 					}
 
 
@@ -219,12 +239,6 @@ int main(int argc, char *argv[])
 	}
 */
 
-/*	getNumOfSimilarImagesWrapper(&numOfSimilarImages, config, &configMsg);
-	if (configMsg != SP_CONFIG_SUCCESS){
-		leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
-		return 0;
-	}*/
-
 	//Create array to store the images
 	imagesPointsArray = (SPPoint**)malloc(numOfImages*sizeof(SPPoint*));
 	//Check if we are in extraction mode
@@ -323,9 +337,16 @@ int main(int argc, char *argv[])
 			leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
 			return 0;
 		}
+
+		getNumOfSimilarImagesWrapper(&numOfSimilarImages, config, &configMsg);
+		if (configMsg != SP_CONFIG_SUCCESS){
+			leaveFunc(configPath, path, imagesPointsArray, imagesForTreeInit);
+			return 0;
+		}
+
 		//loop for receiving a query image from the user
 		//This loop keeps going until the user enters the exit string <>
-		loopForQueries(head, path, numOfImages, numOfExtFeats, numOfSimilarImages, config, &configMsg, proc);
+		loopForQueries(head, numOfImages, numOfSimilarImages, config, &configMsg, proc);
 
 	return 0;
 }
