@@ -54,28 +54,15 @@ void KDSetArray(KDArray kd, int** arr){
 }
 
 void KDArrayDestroy(KDArray kd){
-	int** kdArr = KDGetArray(kd);
-	int size = KDGetSize(kd);
-	SPPoint *P = KDGetP(kd);
-	int dim = spPointGetDimension(*P);
+	int dim = spPointGetDimension(*(kd->P));
 	int i=0;
-	int j=0;
 	for(; i < dim; i++){
-		free(*(kdArr+i));
+		free(*(kd->indexArray+i));
 	}
-	free(kdArr);
+	free(kd->indexArray);
 
-	for(i=0; i<size; i++) free(*(P+i));
-	free(P);
-}
-
-
-void freePointersOfKDArray(KDArray kd){
-	int** kdArr = KDGetArray(kd);
-	SPPoint *P = KDGetP(kd);
-
-	free(kdArr);
-	free(P);
+	for(i=0; i<kd->size; i++) spPointDestroy(*(kd->P+i));
+	free(kd->P);
 }
 
 KDArray init(SPPoint* arr, int size){
@@ -160,9 +147,9 @@ KDArray init2(SPPoint *P, int** arr, int size){
 
 int* makeAndFillMarkerArray(int** srcArray, int i, int KDSize, int coor){
 	int* markerArray = (int*) malloc(KDSize*sizeof(int)); //0 - left part, 1 - right part
-	int j=0;
-	for(; j<KDSize; j++) *(markerArray+j)=0;
 	if(markerArray == NULL) return NULL;
+	int j;
+	for(j=0; j<KDSize; j++) *(markerArray+j)=0;
 	int indexToLit;
 	for(; i<KDSize; i++){ //marking 1 for right part
 		indexToLit = *(*(srcArray+coor) + i);
@@ -240,15 +227,17 @@ int*** buildIndexArrays(int dim, int KDSize,int** srcArray, int* mapLeft, int* m
 
 KDArray* Split(KDArray kdArr, int coor){
 	if(kdArr == NULL) return NULL;
-	if((coor<0) || (coor >= KDGetSize(kdArr))) return NULL;
+	SPPoint* P = KDGetP(kdArr);
+	if((coor<0) && (coor>spPointGetDimension(*P))) return NULL;
 
 	//initializations
 	KDArray* res = (KDArray*) malloc(2*sizeof(KDArray)); //the 2 KDArrays that will be returned
 	int** srcArray = KDGetArray(kdArr); //the indexArray of src KDArray
-	SPPoint* P = KDGetP(kdArr);
 	int KDSize = KDGetSize(kdArr);
 	int halfRoundUp = (KDSize + 1) / 2;
 	int i=halfRoundUp;
+	int dim = 0;
+	int*** indexArrays;
 
 	SPPoint* leftP = (SPPoint*) malloc(halfRoundUp*sizeof(SPPoint)); // left set of points
 	if(leftP == NULL) return NULL;
@@ -267,8 +256,8 @@ KDArray* Split(KDArray kdArr, int coor){
 
 
 	//initialize and build the 2 new indexArrays for the 2 parts
-	int dim = spPointGetDimension(*P);
-	int*** indexArrays = buildIndexArrays(dim, KDSize,srcArray, mapLeft, mapRight);
+	dim = spPointGetDimension(*P);
+	indexArrays = buildIndexArrays(dim, KDSize,srcArray, mapLeft, mapRight);
 
 	//make the 2 new KDArrays
 	*res = init2(leftP, *indexArrays, halfRoundUp);

@@ -34,10 +34,19 @@ void leaveFunc(char* configPath, char* path, SPPoint** imagesPointsArray, SPPoin
 }
 
 void loopForQueries(KDTreeNode head, char* path, int numOfImages, int numOfExtFeats, int numOfSimilarImages, SPConfig config, SP_CONFIG_MSG* configMsg, ImageProc proc){
-		while(1){
+	int max;
+	int maxIndex;
+	int j = 0;
+	int i = 0;
+	int* nearestFeatureCnt;
+	int* mostRankedFeatures;
+	SPBPQueue bpq;
+	while(1){
 
 				printf("Please enter an image path:\n");
-				scanf("%s",path);
+				fflush(stdout);
+				strcpy(path ,"C:\\Users\\mally\\workspace2\\FinalProject\\images\\img0.png");
+		/*		scanf("%s",path);*/
 
 				//Check if the user entered the exit string <>
 				if(!strcmp(path,"<>"))
@@ -46,7 +55,62 @@ void loopForQueries(KDTreeNode head, char* path, int numOfImages, int numOfExtFe
 					break;
 				}
 
+				nearestFeatureCnt = (int*)malloc(sizeof(int)*numOfImages);
+				mostRankedFeatures = (int*)malloc(sizeof(int)*numOfSimilarImages);
 
+				for(i=0;i<numOfImages;i++){//initialize to -1 hits per image
+					nearestFeatureCnt[i] = -1;
+				}
+
+				SPPoint* featuresOfQueryImage = proc.getImageFeatures(path,numOfImages,&numOfExtFeats);
+				for (i = 0; i < numOfExtFeats; ++i) { //count hits per image
+					bpq = spBPQueueCreate(numOfSimilarImages);
+					KNearestNeighbors(head, bpq, *(featuresOfQueryImage+i));
+					while(!spBPQueueIsEmpty(bpq)){
+						int tempIndex = spListElementGetIndex(spBPQueuePeek(bpq));
+						nearestFeatureCnt[tempIndex]++;
+						spBPQueueDequeue(bpq);
+					}
+
+					spBPQueueDestroy(bpq);
+				}
+
+				//choose most appeared features
+
+				for (i = 0; i < numOfSimilarImages; ++i) {
+					max = -1;
+					maxIndex = -1;
+					for (j = 0; j < numOfImages; ++j) {
+						if(nearestFeatureCnt[j] > max){
+							max = nearestFeatureCnt[j];
+							maxIndex = j;
+						}
+					}
+					nearestFeatureCnt[maxIndex] = -1;
+					mostRankedFeatures[i] = maxIndex;
+				}
+
+				free(featuresOfQueryImage);
+
+				if(spConfigMinimalGui(config,configMsg)){ // if we are in minimal-GUI mode
+					for (i = 0; i <numOfSimilarImages ; ++i) {
+						spConfigGetImagePath(path,config,mostRankedFeatures[i]);
+						proc.showImage(path);
+					}
+				}
+				else{ // not in minimal-GUI mode
+					printf("Best candidates for - %s - are:\n",path);
+					for (i = 0; i < numOfSimilarImages; ++i) {
+						spConfigGetImagePath(path,config,mostRankedFeatures[i]);
+						printf("%s\n",path);
+					}
+
+
+				}
+				free(nearestFeatureCnt);
+				free(mostRankedFeatures);
+
+/*
 				Image images[numOfImages];
 				//initialize all the image structs
 				for (int i=0 ; i<numOfImages ; i++)
@@ -78,25 +142,10 @@ void loopForQueries(KDTreeNode head, char* path, int numOfImages, int numOfExtFe
 				qsort(&images,numOfImages,sizeof(Image),compareImagesByHits);
 				free(featsOfQueryImage); //probably need to free all items.
 
-				//Check if minimal GUI mode is on
-				if(spConfigMinimalGui(config,configMsg))
-				{
-					//Go over all the images which are most similar
-					for (int i = 0; i <numOfSimilarImages ; i++)
-					{
-						spConfigGetImagePath(path,config,images[i]->index);
-						proc.showImage(path);
-					}
-				}
-				else //minimal GUI mode is off
-				{
-					printf("Best candidates for - %s - are:\n",path);
-					for (int i = 0; i < numOfSimilarImages; i++)
-					{
-						spConfigGetImagePath(path,config,images[i]->index);
-						printf("%s\n",path);
-					}
-				}
+
+			*/
+
+
 			}
 }
 

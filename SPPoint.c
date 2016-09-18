@@ -59,7 +59,7 @@ int spPointGetIndex(SPPoint point){
 }
 double spPointGetAxisCoor(SPPoint point, int axis){
 	assert ((point != NULL) && (axis < ((int)(point->dim))));
-	int result = point->data[axis];
+	double result = point->data[axis];
 	return result;
 }
 double spPointL2SquaredDistance(SPPoint p, SPPoint q){

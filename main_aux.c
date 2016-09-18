@@ -107,12 +107,11 @@ SPPoint* readFeatsFromFile(FILE* readerFile,int* numOfFeatsPerImage)
 	char* stringForRead = (char*)malloc(sizeof(char)*MAX_LEN);
 
 	int imageIndex,imageDim,numOfFeats;
+	double currValue = 0;
 
-
-	fscanf(readerFile,"%s %d %s %d %s %d %s",
-			stringForRead,&imageIndex,
-			stringForRead,&imageDim,
-			stringForRead,numOfFeats,stringForRead);
+	fscanf(readerFile,"%s %s %d %s %s %d %s %s %s %d",stringForRead,stringForRead,&imageIndex,
+			stringForRead,stringForRead,&imageDim,
+			stringForRead,stringForRead,stringForRead,&numOfFeats);
 
 	*numOfFeatsPerImage = numOfFeats;
 
@@ -124,8 +123,8 @@ SPPoint* readFeatsFromFile(FILE* readerFile,int* numOfFeatsPerImage)
 	{
 		for (j = 0; j < imageDim; j++)
 		{
-			fgets(stringForRead,MAX_LEN,readerFile);
-			featsOfImages[j] = atof(stringForRead);
+			fscanf(readerFile, "%lf",&currValue);
+			featsOfImages[j] = currValue;
 		}
 		*(result+i) = spPointCreate(featsOfImages,imageDim,imageIndex);
 	}

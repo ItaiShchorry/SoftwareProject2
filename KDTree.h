@@ -43,7 +43,7 @@ KDTreeNode KDTreeGetRight(KDTreeNode node);
  * a NULL sent as an argument
  * node.Data in case of success.
  */
-SPPoint* KDTreeGetData(KDTreeNode node);
+SPPoint KDTreeGetData(KDTreeNode node);
 
 
 /*a  getter for the dimension of node.

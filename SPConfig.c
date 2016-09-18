@@ -73,7 +73,8 @@ SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg)
 
 		char commentCheck[2];
 		commentCheck[0] = trimWhiteSpace(line)[0];
-		if (strcmp(line,"") && strcmp(commentCheck,"#")) //check for comments and empty lines
+		int check = strcmp(commentCheck,"#");
+		if (strcmp(line,"") && check) //check for comments and empty lines
 		{
 			param = (char*) malloc(MAX_LEN*sizeof(char));
 			sprintf(env_var,"%s",strtok(line,delim));
