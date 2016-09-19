@@ -7,7 +7,7 @@
 
 #include "math.h"
 #include <float.h>
-#include "string.h"
+#include <string.h>
 #include "limits.h"
 #include <stdio.h>
 #include <assert.h>
@@ -138,7 +138,7 @@ KDTreeNode buildKDTreeRec(KDArray kd, int (*func) (KDArray)){
 
 
 
-KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_SPLIT_METHOD splitMethod){
+KDTreeNode buildKDTree(KDArray kd, SP_TREE_SPLIT_METHOD splitMethod){
 	int (*foo) (KDArray);
 	switch(splitMethod){
 	case RANDOM:

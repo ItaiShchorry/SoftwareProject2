@@ -5,7 +5,7 @@
  *      Author: Itai Shchorry
  */
 
-#include "string.h"
+#include <string.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -65,7 +65,7 @@ double KDTreeGetVal(KDTreeNode node);
  * 	NULL - If allocations failed or kd is NULL
  * 	A new KDArray in case of success.
  */
-KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_SPLIT_METHOD splitMethod);
+KDTreeNode buildKDTree(KDArray kd, SP_TREE_SPLIT_METHOD splitMethod);
 
 /**
  * returns the K nearest neighbors of p that are in KDTree that node is head of

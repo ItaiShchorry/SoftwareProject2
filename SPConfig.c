@@ -104,7 +104,7 @@ SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg)
 
 	if (changeFieldMsg != SP_CONFIG_SUCCESS)
 	{
-		printRegErr(filename, lineNumber, changeFieldMsg);
+		printRegErr(filename, changeFieldMsg);
 
 		free(config->spImagesDirectory);
 		free(config->spImagesPrefix);
@@ -282,11 +282,8 @@ void spConfigDestroy(SPConfig config)
 	free(config);
 }
 
-void printRegErr(char* file, int line, SP_CONFIG_MSG errorType)
+void printRegErr(char* file, SP_CONFIG_MSG errorType)
 {
-/*	spLoggerPrintFile(file);
-	spLoggerPrintLine(line);*/
-
 	char* msg = (char*) malloc(sizeof(char)*MAX_LEN);
 	switch(errorType)
 	{
@@ -312,14 +309,22 @@ void printRegErr(char* file, int line, SP_CONFIG_MSG errorType)
 		break;
 
 	case SP_CONFIG_CANNOT_OPEN_FILE:
+		sprintf(msg, "cannot open file %s", file);
+		break;
 	case SP_CONFIG_ALLOC_FAIL:
+		msg = "memory allocation failure";
+		break;
 	case SP_CONFIG_INVALID_ARGUMENT:
+		msg = "invalid argument";
+		break;
 	case SP_CONFIG_INDEX_OUT_OF_RANGE:
+		msg = "index out of range";
+		break;
 	case SP_CONFIG_SUCCESS:
 		break;
 	}
 
-	printf(msg);
+	printf("%s",msg);
 	free(msg);
 }
 

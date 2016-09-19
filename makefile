@@ -24,7 +24,7 @@ SPImageProc.o: SPImageProc.cpp SPImageProc.h SPConfig.h SPPoint.h SPLogger.h
 # a rule for building a simple c source file
 # use gcc -MM SPPoint.c to see the dependencies
 
-main_aux.o: main_aux.c main_aux.h SPConfig.h SPLogger.h SPPoint.h
+main_aux.o: main_aux.c main_aux.h KDTree.h SPBPriorityQueue.h SPListElement.h SPList.h KDArray.h  SPConfig.h SPLogger.h SPPoint.h
 	$(CC) $(C_COMP_FLAG) -c $*.c
 	
 SPPoint.o: SPPoint.c SPPoint.h

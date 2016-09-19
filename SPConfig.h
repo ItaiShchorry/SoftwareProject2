@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <String.h>
+#include <string.h>
 #include <assert.h>
 #include <ctype.h>
 #include "SPLogger.h"
@@ -58,7 +58,7 @@ typedef enum sp_config_msg_t {
 typedef struct sp_config_t* SPConfig;
 
 
-void printRegErr(char* file, int line, SP_CONFIG_MSG errorType);
+void printRegErr(char* file, SP_CONFIG_MSG errorType);
 
 char* trimWhiteSpace(char* str);
 

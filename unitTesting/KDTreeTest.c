@@ -28,7 +28,7 @@ void printTree(KDTreeNode node, int size) {
 
 static bool KDTreeTest(){
 
-	ASSERT_TRUE(buildKDTree(NULL, NULL, RANDOM) == NULL);
+	ASSERT_TRUE(buildKDTree(NULL, RANDOM) == NULL);
 	SPPoint* arr = (SPPoint*) malloc(10*sizeof(SPPoint)); //check for 2 dimensions with 10 points
 	if(arr == NULL) return NULL;
 	int i=0;
@@ -53,7 +53,7 @@ static bool KDTreeTest(){
 
 	//create KDArray and KDTree
 	KDArray kd = init(arr, 10);
-	KDTreeNode tree = buildKDTree(kd, NULL, RANDOM); //reminder - fix enums of functions
+	KDTreeNode tree = buildKDTree(kd, RANDOM); //reminder - fix enums of functions
 	KDTreeNode tempL = KDTreeGetLeft(tree);
 	int median = 3;
 	while((KDTreeGetLeft(tempL) != NULL)){

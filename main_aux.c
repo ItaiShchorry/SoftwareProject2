@@ -1,5 +1,5 @@
 #include "main_aux.h"
-#include "String.h"
+#include <string.h>
 #include "SPLogger.h"
 
 struct image
@@ -19,7 +19,7 @@ void printFailedCreatingMessage(char* configPath){
 	{
 		char stringToPrint[MAX_LEN];
 		sprintf(stringToPrint,"%s%s%s","The configuration file ",configPath," couldn't be open\n");
-		printf(stringToPrint);
+		printf("%s",stringToPrint);
 	}
 }
 
