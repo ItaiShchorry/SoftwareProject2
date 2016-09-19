@@ -68,7 +68,7 @@ void KDArrayDestroy(KDArray kd){
 
 	for(i=0; i<kd->size; i++) spPointDestroy(kd->P[i]);
 	free(kd->P);
-/*	free(kd);*/
+	free(kd);
 }
 
 KDArray init(SPPoint* arr, int size){

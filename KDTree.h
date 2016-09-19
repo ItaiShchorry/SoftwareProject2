@@ -75,4 +75,10 @@ KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_SPLIT_METHOD splitMe
  * 	k closest neighbors of point p
  */
 void KNearestNeighbors(KDTreeNode node,SPBPQueue bpq, SPPoint p);
+
+/*
+ * frees the kdarray-related allocations
+ * @param kd - a pointer to the KDArray to be freed
+ */
+void KDTreeDestroy(KDTreeNode node);
 #endif /* KDTREE_H_ */

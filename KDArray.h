@@ -48,16 +48,14 @@ SPPoint* KDGetP(KDArray kd);
  * kd->dim in case of success*/
 int KDGetDim(KDArray kd);
 
-
+/*
+ * frees the kdarray-related allocations
+ * @param kd - a pointer to the KDArray to be freed
+ */
 void KDArrayDestroy(KDArray kd);
 
-/*helper function used for freeing only
- *the pointers of KDArray, since we're still using the objects themselves*/
-void freePointersOfKDArray(KDArray kd);
 
-
-int cmpTuples(const void* a, const void* b);
-/**
+/*
  * splits the KDArray to 2 KDArrays according to coor given
  * @return
  * 	NULL - If allocations failed, arr is NULL or coor<0

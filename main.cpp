@@ -25,7 +25,7 @@ struct image
 };
 
 
-void leaveFunc(char* configPath, char* path, SPPoint** imagesPointsArray,int numOfImages
+void leaveFunc(KDTreeNode head, char* configPath, char* path, SPPoint** imagesPointsArray,int numOfImages
 		, int* numOfFeatsPerImage, SPPoint* imagesForTreeInit, int total, SPConfig config){
 	int i;
 	int j;
@@ -45,6 +45,7 @@ void leaveFunc(char* configPath, char* path, SPPoint** imagesPointsArray,int num
 		free(imagesForTreeInit);
 	}
 	spConfigDestroy(config);
+	if(head != NULL)KDTreeDestroy(head);
 	spLoggerDestroy();
 }
 
@@ -155,6 +156,7 @@ void loopForQueries(KDTreeNode head, int numOfImages, int numOfSimilarImages, SP
 
 int main(int argc, char *argv[])
 {
+
 	char* configPath = (char*) malloc(sizeof(char)*MAX_LEN);
 	SP_CONFIG_MSG configMsg;
 	SPConfig config = NULL;
@@ -187,7 +189,7 @@ int main(int argc, char *argv[])
 	else //The user entered more than 2 command line arguments, error
 	{
 		printf("Invalid command line : use -c <config_filename>\n");
-		leaveFunc(configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
+		leaveFunc(head, configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
 		return 0;
 	}
 
@@ -197,7 +199,7 @@ int main(int argc, char *argv[])
 	if (config == NULL && configMsg == SP_CONFIG_CANNOT_OPEN_FILE)
 	{
 		printFailedCreatingMessage(configPath);
-		leaveFunc(configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
+		leaveFunc(head, configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
 		return 0;
 	}
 
@@ -210,7 +212,7 @@ int main(int argc, char *argv[])
 	//Getting the images' details
 	getNumOfImagesWrapper(&numOfImages, config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS){
-		leaveFunc(configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
+		leaveFunc(head, configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
 		return 0;
 	}
 
@@ -224,7 +226,7 @@ int main(int argc, char *argv[])
 		{
 			getImagePathWrapper(i, &configMsg, path, config, writingFile);
 			if (configMsg != SP_CONFIG_SUCCESS){
-				leaveFunc(configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+				leaveFunc(head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
 			}
 
@@ -233,14 +235,14 @@ int main(int argc, char *argv[])
 			numOfFeatsPerImage[i] = numOfExtFeats;
 			getFeatsPathWrapper(i, &configMsg, path, config, writingFile); 	//Getting the feats file path
 			if (configMsg != SP_CONFIG_SUCCESS){
-				leaveFunc(configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+				leaveFunc(head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
 			}
 			writingFile = fopen(path,"w");
 			if (writingFile == NULL)
 			{
 				spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
-				leaveFunc(configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+				leaveFunc(head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
 			}
 			writeFeatsToFile(writingFile,*(imagesPointsArray+i),numOfExtFeats);
@@ -256,7 +258,7 @@ int main(int argc, char *argv[])
 				//Get the feats path of each image
 				getFeatsPathWrapper(i, &configMsg, path, config, writingFile); 	//Getting the feats file path
 				if (configMsg != SP_CONFIG_SUCCESS){
-					leaveFunc(configPath, path, imagesPointsArray, 0 ,NULL, imagesForTreeInit, totalNumOfFeats, config);
+					leaveFunc(head, configPath, path, imagesPointsArray, 0 ,NULL, imagesForTreeInit, totalNumOfFeats, config);
 					return 0;
 				}
 
@@ -264,7 +266,7 @@ int main(int argc, char *argv[])
 				if (readingFile == NULL)
 				{
 					spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
-					leaveFunc(configPath, path, imagesPointsArray,0 ,NULL, imagesForTreeInit, totalNumOfFeats, config);
+					leaveFunc(head, configPath, path, imagesPointsArray,0 ,NULL, imagesForTreeInit, totalNumOfFeats, config);
 					return 0;
 				}
 				*(imagesPointsArray+i) = readFeatsFromFile(readingFile,(numOfFeatsPerImage+i));
@@ -287,35 +289,35 @@ int main(int argc, char *argv[])
 		kdArr = init(imagesForTreeInit, totalNumOfFeats);
 		if (kdArr == NULL)
 		{
-			spLoggerPrintError("Failed to load images to data structure","main.c",__func__,__LINE__);
-			leaveFunc(configPath, path, imagesPointsArray, numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			spLoggerPrintDebug("Failed to load images to data structure","main.c",__func__,__LINE__);
+			leaveFunc(head, configPath, path, imagesPointsArray, numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 			return 0;
 		}
 		splitMethod = SPConfigGetSplitMethod(config, &configMsg);
 		if(configMsg != SP_CONFIG_SUCCESS){
-			spLoggerPrintError("problem with getting the split method from configuration","main.c",__func__,__LINE__);
-			leaveFunc(configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			spLoggerPrintDebug("problem with getting the split method from configuration","main.c",__func__,__LINE__);
+			leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 			return 0;
 		}
 		head = buildKDTree(kdArr, config, splitMethod);
 		KDArrayDestroy(kdArr); // KDArray no longer needed;
 		if (head == NULL)
 		{
-			spLoggerPrintError("Failed to load images to data structure. contact developers","main.c",__func__,__LINE__);
-			leaveFunc(configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			spLoggerPrintDebug("Failed to load images to data structure","main.c",__func__,__LINE__);
+			leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 			return 0;
 		}
 
 		getNumOfSimilarImagesWrapper(&numOfSimilarImages, config, &configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS){
-			leaveFunc(configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 			return 0;
 		}
 
 		//loop for receiving a query image from the user
 		//This loop keeps going until the user enters the exit string <>
 		loopForQueries(head, numOfImages, numOfSimilarImages, config, &configMsg, proc);
-		leaveFunc(configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+		leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 	return 0;
 }
 

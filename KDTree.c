@@ -33,7 +33,7 @@ KDTreeNode KDTreeNodeInit(int dim, double val, KDTreeNode left, KDTreeNode right
 	res->Val = val;
 	res->Left = left;
 	res->Right = right;
-	if(point != NULL) res->Data = spPointCopy(*point);
+	if(point != NULL)res->Data = spPointCopy(*point);
 	else res->Data = NULL;
 	return res;
 }
@@ -158,7 +158,7 @@ KDTreeNode buildKDTree(KDArray kd, SPConfig config, SP_TREE_SPLIT_METHOD splitMe
 }
 
 bool isLeaf(KDTreeNode node){
-	if((KDTreeGetLeft(node) == NULL) && (KDTreeGetRight(node) == NULL)) return 1;
+	if(node->Data != NULL) return 1;
 	return 0;
 }
 
@@ -198,7 +198,21 @@ void KNearestNeighbors(KDTreeNode curr, SPBPQueue bpq, SPPoint p){
 	spListElementDestroy(lastElem);
 }
 
+void KDTreeDestroy(KDTreeNode head){
+	if(!isLeaf(head)){
+		if(head->Left != NULL) KDTreeDestroy(head->Left);
+		if(head->Right != NULL) KDTreeDestroy(head->Right);
+		free(head->Data);
+		free(head);
+		}
+	else{
+		spPointDestroy(head->Data);
+		free(head->Left); //possibly causes problems
+		free(head->Right);
+		free(head);
+	}
 
+}
 
 
 

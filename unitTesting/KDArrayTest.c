@@ -65,7 +65,7 @@ static bool KDArrayTest(){
 	}
 
 
-	qsort(arr3, 50, sizeof(Tuple), cmpTuples);
+/*	qsort(arr3, 50, sizeof(Tuple), cmpTuples);*/
 
 	for(i=0; i < 50; i++){ //check arr3 is ordered
 		printf("value is %f and index is %d\n", (*(arr3 + i)).data[0], (int)(*(arr3 + i)).data[1]);
