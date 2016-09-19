@@ -16,6 +16,7 @@ struct kd_array {
 	SPPoint* P;
 	int size;
 	int** indexArray;
+	int dim;
 };
 
 typedef struct
@@ -53,16 +54,21 @@ void KDSetArray(KDArray kd, int** arr){
 	kd->indexArray = arr;
 }
 
+int KDGetDim(KDArray kd){
+	if (kd == NULL) return -1;
+	return kd->dim;
+}
+
 void KDArrayDestroy(KDArray kd){
-	int dim = spPointGetDimension(*(kd->P));
 	int i=0;
-	for(; i < dim; i++){
-		free(*(kd->indexArray+i));
+	for(; i < kd->dim; i++){
+		free(kd->indexArray[i]);
 	}
 	free(kd->indexArray);
 
-	for(i=0; i<kd->size; i++) spPointDestroy(*(kd->P+i));
+	for(i=0; i<kd->size; i++) spPointDestroy(kd->P[i]);
 	free(kd->P);
+/*	free(kd);*/
 }
 
 KDArray init(SPPoint* arr, int size){
@@ -89,6 +95,7 @@ KDArray init(SPPoint* arr, int size){
 	//allocate memory for array
 	resArray = (int**) malloc(dim*sizeof(int*));
 	if(resArray == NULL) return NULL;
+
 
 	//making the d x n matrix
 	valuesArray = (Tuple*) malloc(size*sizeof(Tuple)); //value of ith dimension and index of each point
@@ -124,9 +131,11 @@ KDArray init(SPPoint* arr, int size){
 		}*/
 
 	}
+	res->dim = dim;
 	res->P = P;
 	res->size = size;
 	res->indexArray = resArray;
+
 
 	//freeing all buffers
 	free(valuesArray);
@@ -137,11 +146,12 @@ KDArray init(SPPoint* arr, int size){
  * @return
  * NULL if P == NULL
  * sets kd->indexArray in case of success*/
-KDArray init2(SPPoint *P, int** arr, int size){
+KDArray init2(SPPoint *P, int** arr, int size, int dim){
 	KDArray res = (KDArray) malloc(sizeof(KDArray));
 	res->indexArray = arr;
 	res->P = P;
 	res->size = size;
+	res->dim = dim;
 	return res;
 }
 
@@ -164,13 +174,13 @@ int i;
 int k2=0;
 for(i=0;i<KDSize; i++){
 	if(markerArray[i]){
-		*(*(rightP)+k1) = *(P+i);
+		*(*(rightP)+k1) = spPointCopy(*(P+i));
 		*(*(mapRight)+i) = k1;
 		*(*(mapLeft)+i) = -1;
 		k1++;
 	}
 	else{
-		*(*(leftP)+k2) = *(P+i);
+		*(*(leftP)+k2) = spPointCopy(*(P+i));
 		*(*(mapLeft)+i) = k2;
 		*(*(mapRight)+i) = -1;
 		k2++;
@@ -236,7 +246,7 @@ KDArray* Split(KDArray kdArr, int coor){
 	int KDSize = KDGetSize(kdArr);
 	int halfRoundUp = (KDSize + 1) / 2;
 	int i=halfRoundUp;
-	int dim = 0;
+	int dim = spPointGetDimension(*P);
 	int*** indexArrays;
 
 	SPPoint* leftP = (SPPoint*) malloc(halfRoundUp*sizeof(SPPoint)); // left set of points
@@ -256,12 +266,11 @@ KDArray* Split(KDArray kdArr, int coor){
 
 
 	//initialize and build the 2 new indexArrays for the 2 parts
-	dim = spPointGetDimension(*P);
 	indexArrays = buildIndexArrays(dim, KDSize,srcArray, mapLeft, mapRight);
 
 	//make the 2 new KDArrays
-	*res = init2(leftP, *indexArrays, halfRoundUp);
-	*(res+1) = init2(rightP, *(indexArrays+1), (KDSize - halfRoundUp));
+	*res = init2(leftP, *indexArrays, halfRoundUp, dim);
+	*(res+1) = init2(rightP, *(indexArrays+1), (KDSize - halfRoundUp), dim);
 	free(mapLeft);
 	free(mapRight);
 	free(markerArray);

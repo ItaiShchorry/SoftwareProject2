@@ -42,6 +42,13 @@ int** KDGetArray(KDArray kd);
 
 SPPoint* KDGetP(KDArray kd);
 
+/*getter for dimension of points
+ * @return
+ * -1 if kd == NULL
+ * kd->dim in case of success*/
+int KDGetDim(KDArray kd);
+
+
 void KDArrayDestroy(KDArray kd);
 
 /*helper function used for freeing only

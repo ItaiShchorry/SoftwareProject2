@@ -68,7 +68,7 @@ double KDTreeGetVal(KDTreeNode node){
 
 int maxSpreadFunc(KDArray kd){
 	SPPoint* P = KDGetP(kd);
-	int dim = spPointGetDimension(*P);
+	int dim = KDGetDim(kd);
 	int** indexArray = KDGetArray(kd);
 	int size = KDGetSize(kd);
 /*	if(size == 1) return 0;*/
@@ -92,7 +92,7 @@ int maxSpreadFunc(KDArray kd){
 }
 
 int randomFunc(KDArray kd){
-	int dim = spPointGetDimension((*KDGetP(kd)));
+	int dim = KDGetDim(kd);
 	int res = rand() % (dim);
 	return res;
 }
@@ -100,7 +100,7 @@ int randomFunc(KDArray kd){
 int incrementalFunc(KDArray kd){
 	static int cnt = 0;
 	int res = cnt;
-	cnt = (cnt+1) % (spPointGetDimension(*(KDGetP(kd))));
+	cnt = (cnt+1) % (KDGetDim(kd));
 	return res;
 }
 
@@ -114,24 +114,25 @@ KDTreeNode buildKDTreeRec(KDArray kd, int (*func) (KDArray)){
 	double resVal = 0;
 	int splitDim = 0;
 	int size = KDGetSize(kd);
+	int** indexArray = KDGetArray(kd);
 	if(size == 1){
 		point = KDGetP(kd);
 		res = KDTreeNodeInit(INVALID_DIM,((int)INVALID_VAL), NULL, NULL, point);
-		return res;
 	}
 	else{
 		splitDim = func(kd);
 		splitted = Split(kd, splitDim);
+		halfRoundUp = ((size + 1) / 2) - 1;
+		resVal = spPointGetAxisCoor(*(KDGetP(kd) + indexArray[splitDim][halfRoundUp]), splitDim);
+
 		resLeft = buildKDTreeRec(*splitted, func);
 		resRight = buildKDTreeRec(*(splitted+1), func);
-		halfRoundUp = ((size + 1) / 2) - 1;
-		resVal = spPointGetAxisCoor(*(KDGetP(kd) + halfRoundUp), splitDim);
 		res = KDTreeNodeInit(splitDim, resVal, resLeft, resRight, NULL);
-/*		KDArrayDestroy(*splitted);
-		KDArrayDestroy(*(splitted+1));*/
+		KDArrayDestroy(*splitted);
+		KDArrayDestroy(*(splitted+1));
 		free(splitted);
-		return res;
 	}
+	return res;
 }
 
 
