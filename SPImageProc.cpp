@@ -8,9 +8,8 @@
 #include <opencv2/highgui.hpp>
 #include <cstdio>
 #include "SPImageProc.h"
-
-extern "C"{
-	#include "SPLogger.h"
+extern "C" {
+#include "SPLogger.h"
 }
 
 using namespace cv;

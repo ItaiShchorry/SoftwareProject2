@@ -57,8 +57,9 @@ typedef enum sp_config_msg_t {
 
 typedef struct sp_config_t* SPConfig;
 
+void printAllFields(const SPConfig config);
 
-void printRegErr(char* file, SP_CONFIG_MSG errorType);
+void printRegErr(const char* file, SP_CONFIG_MSG errorType);
 
 char* trimWhiteSpace(char* str);
 
@@ -91,7 +92,7 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
  *
  *
  */
-SPConfig spConfigCreate(char* filename, SP_CONFIG_MSG* msg);
+SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
 
 /*
  * Returns true if spExtractionMode = true, false otherwise.
