@@ -70,7 +70,7 @@ void KDArrayDestroy(KDArray kd){
 
 	for(i=0; i<kd->size; i++) spPointDestroy(kd->P[i]);
 	free(kd->P);
-/*	free(kd);*/
+	free(kd);
 }
 
 KDArray init(SPPoint* arr, int size){
@@ -256,7 +256,7 @@ KDArray* Split(KDArray kdArr, int coor){
 	if(mapLeft == NULL) return NULL;
 	int* mapRight = (int*) malloc(KDSize*sizeof(int)); //mapping for right set
 	if(mapRight == NULL) return NULL;
-	printf("passed inits inside split\n");
+/*	printf("passed inits inside split\n");*/
 
 	//make and fill markerArray
 	int* markerArray = makeAndFillMarkerArray(srcArray, i, KDSize, coor);
@@ -268,7 +268,7 @@ KDArray* Split(KDArray kdArr, int coor){
 		printf("kd->array[coor][%d] is %d ", i, srcArray[coor][i]);
 	}
 	printf("\n");*/
-	printf("marker array pass\n");
+/*	printf("marker array pass\n");*/
 	//split P to  2 SPPoint* according to markerArray, and build the 2 maps
 	splitAndMap(P, markerArray, mapLeft, mapRight, leftP, rightP, KDSize);
 /*	for(i=0; i<halfRoundUp; i++){ looks good
@@ -276,10 +276,10 @@ KDArray* Split(KDArray kdArr, int coor){
 		fflush(NULL);
 		assert(spPointL2SquaredDistance(*(leftP+i), kdArr->P[srcArray[coor][i]]) == 0);
 	}*/
-	printf("splitandmap pass\n");
+/*	printf("splitandmap pass\n");*/
 	//initialize and build the 2 new indexArrays for the 2 parts
 	indexArrays = buildIndexArrays(dim, KDSize,srcArray, mapLeft, mapRight);
-	printf("buildindexarrays pass\n");
+/*	printf("buildindexarrays pass\n");*/
 
 
 	//make the 2 new KDArrays
@@ -295,7 +295,7 @@ KDArray* Split(KDArray kdArr, int coor){
 			fflush(NULL);
 		}
 		}*/
-	printf("init2 both pass");
+/*	printf("init2 both pass");*/
 
 	free(mapLeft);
 	free(mapRight);

@@ -120,9 +120,7 @@ KDTreeNode buildKDTreeRec(KDArray kd, int (*func) (KDArray)){
 		res = KDTreeNodeInit(INVALID_DIM,((int)INVALID_VAL), NULL, NULL, point);
 	}
 	else{
-		printf("got inside else. size is %d\n", size);
 		splitDim = func(kd);
-		printf("splitDim is %d\n", splitDim);
 		splitted = Split(kd, splitDim);
 		halfRoundUp = ((size + 1) / 2) - 1;
 		resVal = spPointGetAxisCoor(*(KDGetP(kd) + indexArray[splitDim][halfRoundUp]), splitDim);
@@ -145,19 +143,14 @@ KDTreeNode buildKDTree(KDArray kd, SP_TREE_SPLIT_METHOD splitMethod){
 	switch(splitMethod){
 	case RANDOM:
 		foo = randomFunc;
-		printf("random func/n");
-
 		break;
 
 	case INCREMENTAL:
 		foo = incrementalFunc;
-		printf("inc func/n");
 		break;
 
 	case MAX_SPREAD:
 		foo = maxSpreadFunc;
-		printf("maxspread func/n");
-
 	}
 
 	KDTreeNode result = buildKDTreeRec(kd, foo);
@@ -214,7 +207,7 @@ void KDTreeDestroy(KDTreeNode head){
 		}
 	else{
 		spPointDestroy(head->Data);
-		free(head->Left); //possibly causes problems
+		free(head->Left);
 		free(head->Right);
 		free(head);
 	}

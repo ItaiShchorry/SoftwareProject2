@@ -57,15 +57,8 @@ typedef enum sp_config_msg_t {
 
 typedef struct sp_config_t* SPConfig;
 
+/*used for debug messages in the logger - prints all fields of given config*/
 void printAllFields(const SPConfig config);
-
-void printRegErr(const char* file, SP_CONFIG_MSG errorType);
-
-char* trimWhiteSpace(char* str);
-
-SP_CONFIG_ENV_VAR getSPConfigEnvVar(char* field);
-
-SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char* param);
 
 /**
  * Creates a new system configuration struct. The configuration struct
@@ -249,7 +242,7 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
 
 /**
  * Frees all memory resources associate with config. 
- * If config == NULL nothig is done.
+ * If config == NULL nothing is done.
  */
 void spConfigDestroy(SPConfig config);
 

@@ -134,12 +134,4 @@ SPPoint* readFeatsFromFile(FILE* readerFile,int* numOfFeatsPerImage)
 	return result;
 }
 
-int compareImagesByHits (const void * a, const void * b)
-{
-	Image* aImg = (Image*) a;
-	Image* bImg = (Image*) b;
-	return ( (*aImg)->hits - (*bImg)->hits );
-}
-
-
 

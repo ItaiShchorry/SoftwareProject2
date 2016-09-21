@@ -15,13 +15,10 @@ using namespace cv;
 using namespace std;
 using namespace sp;
 
-void leaveFunc(int* numOfFeats, KDTreeNode head, char* configPath, char* path, SPPoint** imagesPointsArray,int numOfImages
+void leaveFunc(KDTreeNode head, char* configPath, char* path, SPPoint** imagesPointsArray,int numOfImages
 		, int* numOfFeatsPerImage, SPPoint* imagesForTreeInit, int total, SPConfig config){
-	printf("im in leavFunc\n");
-	fflush(NULL);
 	int i;
 	int j;
-	free(numOfFeats);
 	free(configPath);
 	free(path);
 	if(imagesPointsArray != NULL){
@@ -29,54 +26,65 @@ void leaveFunc(int* numOfFeats, KDTreeNode head, char* configPath, char* path, S
 			for(j=0; j<numOfFeatsPerImage[i]; j++){
 				spPointDestroy(imagesPointsArray[i][j]);
 			}
-			free(imagesPointsArray + i);
+			free(*(imagesPointsArray + i));
 		}
 		free(imagesPointsArray);
 	}
+
 	if(imagesForTreeInit != NULL){
 		for(i=0; i<total; i++) spPointDestroy(*(imagesForTreeInit+i));
 		free(imagesForTreeInit);
 	}
 	spConfigDestroy(config);
 	if(head != NULL){
-		printf("try and destroy head");
 		KDTreeDestroy(head);
 	}
+	free(numOfFeatsPerImage);
 	spLoggerDestroy();
 }
 
-void loopForQueries(KDTreeNode head, int numOfImages, int numOfSimilarImages, SPConfig config, SP_CONFIG_MSG* configMsg, ImageProc proc){
+void loopForQueries(KDTreeNode head, int numOfImages, int numOfSimilarImages, SPConfig config, SP_CONFIG_MSG* configMsg, ImageProc* proc){
+	char tempPath[MAX_LEN] = {'\0'};
 	int queryNumOfFeats = 0;
 	char* path = (char*)malloc(MAX_LEN*sizeof(char));
 	int max;
 	int maxIndex;
 	int j = 0;
 	int i = 0;
-	int numOfTriesForEnteringPath = 0;
+	int numOfTriesForEnteringPath;
 	int* nearestFeatureCnt;
 	int* mostRankedFeatures;
 	SPBPQueue bpq;
+	SPListElement tempElem = NULL;
 	SPPoint* featuresOfQueryImage;
 	while(1){
-
+				numOfTriesForEnteringPath = 0;
 				printf("Please enter an image path:\n");
 				fflush(stdout);
 				scanf("%s",path);
 				//Check if the user entered the exit string <>
-				featuresOfQueryImage = proc.getImageFeatures(path,numOfImages,&queryNumOfFeats);
+				featuresOfQueryImage = proc->getImageFeatures(path,numOfImages,&queryNumOfFeats);
 				if(!strcmp(path,"<>"))
 				{
 					printf(EXIT_MSG);
-					break;
+					free(path);
+					return;
 				}
 				while((featuresOfQueryImage == NULL)){
-					if(numOfTriesForEnteringPath > 4){
+					if(numOfTriesForEnteringPath > 8){
 						spLoggerPrintError("exceeded number of tries for entering image path. program will exit\n","main.c",__func__,__LINE__);
+						printf("exceeded number of tries for entering image path. program will exit\n");
 						printf(EXIT_MSG);
-						break;
+						free(path);
+						return;
 					}
 					numOfTriesForEnteringPath++;
-					spLoggerPrintWarning("invalid image path, please try entering a new path:\n","main.c",__func__,__LINE__);
+					spLoggerPrintWarning("invalid image path given by user","main.c",__func__,__LINE__);
+					sprintf(tempPath, "user has %d tries left\n", (10 - numOfTriesForEnteringPath));
+					spLoggerPrintInfo(tempPath);
+					printf("invalid image path, you have %d tries left. please enter a new path:\n", (10 - numOfTriesForEnteringPath));
+					fflush(NULL);
+
 					scanf("%s",path);
 					if(!strcmp(path,"<>"))
 					{
@@ -84,7 +92,7 @@ void loopForQueries(KDTreeNode head, int numOfImages, int numOfSimilarImages, SP
 						free(path);
 						return;
 					}
-					featuresOfQueryImage = proc.getImageFeatures(path,numOfImages,&queryNumOfFeats);
+					featuresOfQueryImage = proc->getImageFeatures(path,numOfImages,&queryNumOfFeats);
 				}
 
 				//allocate memory for helper variables
@@ -100,9 +108,11 @@ void loopForQueries(KDTreeNode head, int numOfImages, int numOfSimilarImages, SP
 					bpq = spBPQueueCreate(numOfSimilarImages);
 					KNearestNeighbors(head, bpq, *(featuresOfQueryImage+i));
 					while(!spBPQueueIsEmpty(bpq)){
-						int tempIndex = spListElementGetIndex(spBPQueuePeek(bpq));
+						tempElem = spBPQueuePeek(bpq);
+						int tempIndex = spListElementGetIndex(tempElem);
 						nearestFeatureCnt[tempIndex]++;
 						spBPQueueDequeue(bpq);
+						spListElementDestroy(tempElem);
 					}
 
 					spBPQueueDestroy(bpq);
@@ -131,7 +141,7 @@ void loopForQueries(KDTreeNode head, int numOfImages, int numOfSimilarImages, SP
 				if(spConfigMinimalGui(config,configMsg)){
 					for (i = 0; i <numOfSimilarImages ; i++) {
 						spConfigGetImagePath(path,config,mostRankedFeatures[i]);
-						proc.showImage(path);
+						proc->showImage(path);
 					}
 				}
 				else{
@@ -158,7 +168,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	int* numOfFeatsPerImage = NULL;
-	SP_CONFIG_MSG configMsg;
+	SP_CONFIG_MSG configMsg = SP_CONFIG_SUCCESS;
 	SPConfig config = NULL;
 	int numOfImages = 0;
 	int count=0;
@@ -193,17 +203,18 @@ int main(int argc, char *argv[])
 	else //The user entered more than 2 command line arguments, error
 	{
 		printf("Invalid command line : use -c <config_filename>\n");
-		leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
+		leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 		return 0;
 	}
 
 	//Creating the config file
 	config = spConfigCreate(configPath,&configMsg);
 	//Checking if creating it failed
-	if (config == NULL && configMsg == SP_CONFIG_CANNOT_OPEN_FILE)
+	if ((config == NULL) || (configMsg != SP_CONFIG_SUCCESS))
 	{
-		printFailedCreatingMessage(configPath);
-		leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
+		printf("failed to create configuration file based on input.\n");
+		printf(EXIT_MSG);
+		leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 		return 0;
 	}
 
@@ -211,61 +222,60 @@ int main(int argc, char *argv[])
 /*	printAllFields(config);*/
 
 	//Creating the log file and logger object
-	char* filfi = spConfigGetLoggerFilename(config);
-	SP_LOGGER_LEVEL lvl = spConfigGetLoggerLevel(config);
-/*	printf("logfilename is %s\n", filfi);
-	fflush(NULL);*/
-	spLoggerCreate(filfi,lvl);
-
-	//Create the image processing object
-	ImageProc proc = ImageProc(config);
-
-	//Getting the images' details
-	fflush(NULL);
-	getNumOfImagesWrapper(&numOfImages, config, &configMsg);
-	if (configMsg != SP_CONFIG_SUCCESS){
-		leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
+	SP_LOGGER_MSG logMsg = spLoggerCreate(spConfigGetLoggerFilename(config),spConfigGetLoggerLevel(config));
+	if(logMsg != SP_LOGGER_SUCCESS){
+		printf("failed to create SPLogger based on input\n. program will exit");
+		printf(EXIT_MSG);
+		leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 		return 0;
 	}
-	fflush(NULL);
+	//Create the image processing object
+	spLoggerPrintDebug("Logger created successfully. now Creating ImageProc..\n","main.c",__func__,__LINE__);
+	ImageProc* proc = new ImageProc(config);
+
+	//Getting the images' details
+	getNumOfImagesWrapper(&numOfImages, config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS){
+		printf(EXIT_MSG);
+		leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+		return 0;
+	}
 
 	numOfFeatsPerImage = (int*) malloc(sizeof(int)*numOfImages);
 	if(numOfFeatsPerImage == NULL){
 		spLoggerPrintError("memory allocation failure","main.c",__func__,__LINE__);
-		leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray,0 ,NULL, imagesForTreeInit, totalNumOfFeats, config);
+		printf(EXIT_MSG);
+		leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+		return 0;
 	}
 
 	//Create array to store the images
+	spLoggerPrintDebug("Storing the images in imagesPointsArray\n","main.c",__func__,__LINE__);
 	imagesPointsArray = (SPPoint**)malloc(numOfImages*sizeof(SPPoint*));
 	//Check if we are in extraction mode
 	if (spConfigIsExtractionMode(config,&configMsg)) {
+		spLoggerPrintDebug("Entered extraction mode\n","main.c",__func__,__LINE__);
 		for (int i = 0; i < numOfImages; i++)  //Go over all of the images and write the feats file
 		{
-			printf("got in extraction mode!\n");
-
 			getImagePathWrapper(i, &configMsg, path, config, writingFile);
 			if (configMsg != SP_CONFIG_SUCCESS){
-				leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+				leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
 			}
 
-			*(imagesPointsArray+i) = proc.getImageFeatures(path,i,&numOfExtFeats); 	//extracting the image features
+			*(imagesPointsArray+i) = proc->getImageFeatures(path,i,&numOfExtFeats); 	//extracting the image features
 			totalNumOfFeats += numOfExtFeats;
 			numOfFeatsPerImage[i] = numOfExtFeats;
 			getFeatsPathWrapper(i, &configMsg, path, config, writingFile); 	//Getting the feats file path
 			if (configMsg != SP_CONFIG_SUCCESS){
-				leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+				leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
 			}
-			printf("path is %s for open file\n", path);
-					fflush(NULL);
 			writingFile = fopen(path,"w");
 			if (writingFile == NULL)
 			{
-				printf("couldnt open file\n");
-				fflush(NULL);
 				spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
-				leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+				leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
 			}
 
@@ -276,13 +286,14 @@ int main(int argc, char *argv[])
 		}
 		else //non-Extraction mode
 		{
+			spLoggerPrintDebug("Entered non-Extraction mode\n","main.c",__func__,__LINE__);
 			//Go over all the images
 			for (int i = 0; i < numOfImages; i++)
 			{
 				//Get the feats path of each image
 				getFeatsPathWrapper(i, &configMsg, path, config, writingFile); 	//Getting the feats file path
 				if (configMsg != SP_CONFIG_SUCCESS){
-					leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, 0 ,NULL, imagesForTreeInit, totalNumOfFeats, config);
+					leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 					return 0;
 				}
 
@@ -290,7 +301,7 @@ int main(int argc, char *argv[])
 				if (readingFile == NULL)
 				{
 					spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
-					leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray,0 ,NULL, imagesForTreeInit, totalNumOfFeats, config);
+					leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 					return 0;
 				}
 				*(imagesPointsArray+i) = readFeatsFromFile(readingFile,(numOfFeatsPerImage+i));
@@ -300,7 +311,7 @@ int main(int argc, char *argv[])
 			fclose(readingFile);
 		}
 
-
+	spLoggerPrintDebug("Start loading all points to imagesForTreeInit\n","main.c",__func__,__LINE__);
 		imagesForTreeInit = (SPPoint*)malloc(sizeof(SPPoint)*totalNumOfFeats);
 		for (int i = 0; i < numOfImages; i++)
 		{
@@ -310,77 +321,52 @@ int main(int argc, char *argv[])
 				count++;
 			}
 		}
-/*      works beautifully
-		printf("******start init tree*******\n");
-		printf("num of images is %d\n", numOfImages);
-		for (int i = 0; i < numOfImages; i++){
-			printf("num of feats per image[%d] is %d\n", i, numOfFeatsPerImage[i]);
-			for (int j = 0; j < numOfFeatsPerImage[i]; j++){
-				printf("%f\n", spPointGetAxisCoor(imagesPointsArray[i][j], 0));
-				fflush(NULL);
-			}
-		}*/
-		printf("******start init tree*******\n");
-		fflush(stdout);
+
 		//Initialize KDtree of images
+		spLoggerPrintInfo("****start initializing KDArray****\n");
 		kdArr = init(imagesForTreeInit, totalNumOfFeats);
 		if (kdArr == NULL)
 		{
-			printf("kdArr is null\n");
 			spLoggerPrintDebug("Failed to load images to data structure","main.c",__func__,__LINE__);
-			leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 			return 0;
 		}
-
-		printf("******got out of init tree*******\n");
-		fflush(stdout);
-
-/*		SPPoint* P = KDGetP(kdArr); works beautifully
-		int** resArray = KDGetArray(kdArr);
-		for(int i=0; i<KDGetDim(kdArr); i++){
-		for(int j=0; j < KDGetSize(kdArr); j++){
-			printf("in iteration %d, resArray[%d][%d].data[%d] is %f\n", i, i, j, i, spPointGetAxisCoor(P[resArray[i][j]], i));
-			fflush(NULL);
-		}
-		}*/
-		printf("%d", KDGetDim(kdArr));
-		fflush(NULL);
-		printf("%d", KDGetSize(kdArr));
-		fflush(NULL);
-
+		spLoggerPrintDebug("****finished the initialization****\n","main.c",__func__,__LINE__);
 
 		splitMethod = SPConfigGetSplitMethod(config, &configMsg);
 		if(configMsg != SP_CONFIG_SUCCESS){
 			spLoggerPrintDebug("problem with getting the split method from configuration","main.c",__func__,__LINE__);
-			leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 			return 0;
 		}
-		printf("******starting to buildtree*******\n");
-		fflush(stdout);
 
+		spLoggerPrintInfo("****start initializing KDArray****\n");
 		head = buildKDTree(kdArr, splitMethod);
-		printf("******finished building tree*******\n");
-		fflush(NULL);
+		spLoggerPrintDebug("****finished Building the KDTree****\n","main.c",__func__,__LINE__);
 
 		KDArrayDestroy(kdArr); // KDArray no longer needed;
 		if (head == NULL)
 		{
 			spLoggerPrintDebug("Failed to load images to data structure","main.c",__func__,__LINE__);
-			leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			printf(EXIT_MSG);
 			return 0;
 		}
 
 		getNumOfSimilarImagesWrapper(&numOfSimilarImages, config, &configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS){
-			leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+			printf(EXIT_MSG);
 			return 0;
 		}
 
 		//loop for receiving a query image from the user
 		//This loop keeps going until the user enters the exit string <>
-		printf("******getting inside loop queries*******\n");
+		spLoggerPrintInfo("****Entering loop for addressing query images****\n\n");
 		loopForQueries(head, numOfImages, numOfSimilarImages, config, &configMsg, proc);
-		leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+		leaveFunc(head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
+		delete(proc);
+		spLoggerPrintDebug("Exited the main function without errors\n","main.c",__func__,__LINE__);
 	return 0;
 }
 
