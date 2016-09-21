@@ -41,7 +41,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		*msg = SP_CONFIG_CANNOT_OPEN_FILE;
 		goto leave;
 	}
-	SPConfig config = (SPConfig) malloc(sizeof(SPConfig));
+	SPConfig config = (SPConfig) malloc(sizeof(*config));
 		if (config == NULL)
 		{
 			*msg = SP_CONFIG_ALLOC_FAIL;

@@ -38,7 +38,10 @@ void leaveFunc(int* numOfFeats, KDTreeNode head, char* configPath, char* path, S
 		free(imagesForTreeInit);
 	}
 	spConfigDestroy(config);
-	if(head != NULL)KDTreeDestroy(head);
+	if(head != NULL){
+		printf("try and destroy head");
+		KDTreeDestroy(head);
+	}
 	spLoggerDestroy();
 }
 
@@ -204,13 +207,13 @@ int main(int argc, char *argv[])
 	}
 
 	//convert to debug of logger
-	printAllFields(config);
+/*	printAllFields(config);*/
 
 	//Creating the log file and logger object
 	char* filfi = spConfigGetLoggerFilename(config);
 	SP_LOGGER_LEVEL lvl = spConfigGetLoggerLevel(config);
-	printf("logfilename is %s\n", filfi);
-	fflush(NULL);
+/*	printf("logfilename is %s\n", filfi);
+	fflush(NULL);*/
 	spLoggerCreate(filfi,lvl);
 
 	//Create the image processing object
@@ -218,12 +221,14 @@ int main(int argc, char *argv[])
 
 	//Getting the images' details
 	printf("got out of image proc. halleluyah!\n");
+	fflush(NULL);
 	getNumOfImagesWrapper(&numOfImages, config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS){
 		leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
 		return 0;
 	}
 	printf("got out of image proc. halleluyah!\n");
+	fflush(NULL);
 
 	numOfFeatsPerImage = (int*) malloc(sizeof(int)*numOfImages);
 	if(numOfFeatsPerImage == NULL){
@@ -256,9 +261,13 @@ int main(int argc, char *argv[])
 				leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
 			}
+			printf("path is %s for open file\n", path);
+					fflush(NULL);
 			writingFile = fopen(path,"w");
 			if (writingFile == NULL)
 			{
+				printf("couldnt open file\n");
+				fflush(NULL);
 				spLoggerPrintError("Failed opening the file for writing feats","main.c",__func__,__LINE__);
 				leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
@@ -309,17 +318,19 @@ int main(int argc, char *argv[])
 		}
 
 		printf("******start building tree*******\n");
-
+		fflush(stdout);
 		//Initialize KDtree of images
 		kdArr = init(imagesForTreeInit, totalNumOfFeats);
 		if (kdArr == NULL)
 		{
+			printf("kdArr is null\n");
 			spLoggerPrintDebug("Failed to load images to data structure","main.c",__func__,__LINE__);
 			leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 			return 0;
 		}
 
 		printf("******got out of init tree*******\n");
+		fflush(stdout);
 
 		splitMethod = SPConfigGetSplitMethod(config, &configMsg);
 		if(configMsg != SP_CONFIG_SUCCESS){
@@ -327,8 +338,11 @@ int main(int argc, char *argv[])
 			leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray,numOfImages, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 			return 0;
 		}
+		printf("******starting to buildtree*******\n");
+				fflush(stdout);
 		head = buildKDTree(kdArr, splitMethod);
 		printf("******finished building tree*******\n");
+		fflush(NULL);
 
 		KDArrayDestroy(kdArr); // KDArray no longer needed;
 		if (head == NULL)
