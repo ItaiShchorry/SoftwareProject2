@@ -81,7 +81,8 @@ void loopForQueries(KDTreeNode head, int numOfImages, int numOfSimilarImages, SP
 					if(!strcmp(path,"<>"))
 					{
 						printf(EXIT_MSG);
-						break;
+						free(path);
+						return;
 					}
 					featuresOfQueryImage = proc.getImageFeatures(path,numOfImages,&queryNumOfFeats);
 				}
@@ -220,14 +221,12 @@ int main(int argc, char *argv[])
 	ImageProc proc = ImageProc(config);
 
 	//Getting the images' details
-	printf("got out of image proc. halleluyah!\n");
 	fflush(NULL);
 	getNumOfImagesWrapper(&numOfImages, config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS){
 		leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, numOfImages, NULL, imagesForTreeInit, totalNumOfFeats, config);
 		return 0;
 	}
-	printf("got out of image proc. halleluyah!\n");
 	fflush(NULL);
 
 	numOfFeatsPerImage = (int*) malloc(sizeof(int)*numOfImages);
@@ -235,7 +234,6 @@ int main(int argc, char *argv[])
 		spLoggerPrintError("memory allocation failure","main.c",__func__,__LINE__);
 		leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray,0 ,NULL, imagesForTreeInit, totalNumOfFeats, config);
 	}
-	printf("got out of image proc. halleluyah!\n");
 
 	//Create array to store the images
 	imagesPointsArray = (SPPoint**)malloc(numOfImages*sizeof(SPPoint*));
@@ -250,8 +248,6 @@ int main(int argc, char *argv[])
 				leaveFunc(numOfFeatsPerImage, head, configPath, path, imagesPointsArray, i, numOfFeatsPerImage, imagesForTreeInit, totalNumOfFeats, config);
 				return 0;
 			}
-
-			printf("image wrapper ok! value is %s\n", path);
 
 			*(imagesPointsArray+i) = proc.getImageFeatures(path,i,&numOfExtFeats); 	//extracting the image features
 			totalNumOfFeats += numOfExtFeats;
@@ -274,8 +270,6 @@ int main(int argc, char *argv[])
 			}
 
 			writeFeatsToFile(writingFile,*(imagesPointsArray+i),numOfExtFeats);
-			printf("got out of write feats to file\n");
-
 		}
 
 			fclose(writingFile);
@@ -316,8 +310,17 @@ int main(int argc, char *argv[])
 				count++;
 			}
 		}
-
-		printf("******start building tree*******\n");
+/*      works beautifully
+		printf("******start init tree*******\n");
+		printf("num of images is %d\n", numOfImages);
+		for (int i = 0; i < numOfImages; i++){
+			printf("num of feats per image[%d] is %d\n", i, numOfFeatsPerImage[i]);
+			for (int j = 0; j < numOfFeatsPerImage[i]; j++){
+				printf("%f\n", spPointGetAxisCoor(imagesPointsArray[i][j], 0));
+				fflush(NULL);
+			}
+		}*/
+		printf("******start init tree*******\n");
 		fflush(stdout);
 		//Initialize KDtree of images
 		kdArr = init(imagesForTreeInit, totalNumOfFeats);
@@ -332,6 +335,20 @@ int main(int argc, char *argv[])
 		printf("******got out of init tree*******\n");
 		fflush(stdout);
 
+/*		SPPoint* P = KDGetP(kdArr); works beautifully
+		int** resArray = KDGetArray(kdArr);
+		for(int i=0; i<KDGetDim(kdArr); i++){
+		for(int j=0; j < KDGetSize(kdArr); j++){
+			printf("in iteration %d, resArray[%d][%d].data[%d] is %f\n", i, i, j, i, spPointGetAxisCoor(P[resArray[i][j]], i));
+			fflush(NULL);
+		}
+		}*/
+		printf("%d", KDGetDim(kdArr));
+		fflush(NULL);
+		printf("%d", KDGetSize(kdArr));
+		fflush(NULL);
+
+
 		splitMethod = SPConfigGetSplitMethod(config, &configMsg);
 		if(configMsg != SP_CONFIG_SUCCESS){
 			spLoggerPrintDebug("problem with getting the split method from configuration","main.c",__func__,__LINE__);
@@ -339,7 +356,8 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 		printf("******starting to buildtree*******\n");
-				fflush(stdout);
+		fflush(stdout);
+
 		head = buildKDTree(kdArr, splitMethod);
 		printf("******finished building tree*******\n");
 		fflush(NULL);

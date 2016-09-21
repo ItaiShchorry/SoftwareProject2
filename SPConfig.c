@@ -94,10 +94,8 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 			}
 			strcpy(temp1, env_var);
 			strcpy(env_var,trimWhiteSpace(temp1));
-			printf("param before sprintf with trimmed ver is %s\n", param);
 			strcpy(temp2, param);
 			strcpy(param,trimWhiteSpace(temp2));
-			printf("param after sprintf with trimmed ver is %s\n", param);
 
 			SP_CONFIG_ENV_VAR enum_env_var = getSPConfigEnvVar(env_var);
 			changeFieldMsg = changeSPConfigField(config,enum_env_var,param);
@@ -327,7 +325,6 @@ void printRegErr(const char* file, SP_CONFIG_MSG errorType)
 
 char* trimWhiteSpace(char* str)
 {
-	printf("str before white space is %s\n", str);
 	char *end;
 	while(isspace(*str)) str++;
 
@@ -339,7 +336,6 @@ char* trimWhiteSpace(char* str)
 
 	*(end+1) = 0;
 
-	printf("str after white space is %s\n", str);
 	return str;
 }
 
@@ -371,19 +367,16 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 	switch(field)
 	{
 	case EnumspImagesDirectory:
-		printf("in images dir. param is %s\n", param);
 		if (strcmp(param,""))//not empty
 		{
 			strcpy(config->spImagesDirectory,param);
 		}
 		else //empty
 			{
-			printf("prob in image dir\n");
 				return_value = SP_CONFIG_MISSING_DIR;
 			}
 		break;
 	case EnumspImagesPrefix:
-		printf("in images prefix. param is %s\n", param);
 		if (strcmp(param,""))//not empty
 			{
 				strcpy(config->spImagesPrefix ,param);
@@ -395,7 +388,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		break;
 
 	case EnumspImagesSuffix:
-		printf("in images suffix. param is %s\n", param);
 		if (strcmp(param,""))//not empty
 			{
 			if ((!strcmp(param,".jpg")) || (!strcmp(param,".png")) || (!strcmp(param,".bmp")) || (!strcmp(param,".gif")))	{
@@ -414,8 +406,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		break;
 
 	case EnumspNumOfImages:
-		printf("in images numofimages. param is %s\n", param);
-
 		if (strcmp(param,"")) //not empty
 		{
 			if (atoi(param)<1)//invalid value
@@ -434,8 +424,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		break;
 
 	case EnumspPCADimension:
-		printf("in images pcadim. param is %s\n", param);
-
 		if (strcmp(param,"")) //not empty
 			{
 			int intParam = atoi(param);
@@ -451,8 +439,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		break;
 
 	case EnumspPCAFilename:
-		printf("in images pcafilename. param is %s\n", param);
-
 		if (strcmp(param,""))//not empty
 			{
 				strcpy(config->spPCAFilename ,param);
@@ -460,8 +446,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		break; //is empty, take default value
 
 	case EnumspNumOfFeatures:
-		printf("in images numoffeatures. param is %s\n", param);
-
 		if (strcmp(param,"")) //not empty
 			{
 			if (atoi(param)<1)//invalid value
@@ -476,23 +460,18 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		break; //might've took default value if here
 
 	case EnumspExtractionMode:
-		printf("in extraction mode. param is %s\n", param);
 		if (strcmp(param,"")) //not empty
 			{
-			printf("string not empty\n");
 			if (!strcmp(param,"true"))//valid value = true
 				{
-				printf("got true\n");
 				config->spExtractionMode = true;
 				}
 			else if (!strcmp(param,"false"))
 					{
-				printf("got true\n");
 					config->spExtractionMode = false;
 					}
 			else //invalid value
 					{
-					printf("invalid value in extract\n");
 					return_value = SP_CONFIG_INVALID_STRING;
 					}
 			}
@@ -500,8 +479,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 
 
 	case EnumspNumOfSimilarImages:
-		printf("in images numofsimilarimages. param is %s\n", param);
-
 		if (strcmp(param,"")) //not empty
 				{
 					if (atoi(param)<1)//invalid value
@@ -529,8 +506,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		}
 		break;
 	case EnumspKNN:
-		printf("in images spknn. param is %s\n", param);
-
 		if (strcmp(param,"")) //not empty
 		{
 			if (atoi(param)<1)//invalid value
@@ -563,7 +538,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		break; // is empty, take default value
 
 	case EnumspLoggerLevel:
-		printf("in images enumsploggerlvl. param is %s\n", param);
 
 		if (strcmp(param,"")) //not empty
 		{
@@ -580,8 +554,6 @@ SP_CONFIG_MSG changeSPConfigField(SPConfig config, SP_CONFIG_ENV_VAR field, char
 		break; //is empty, take default value
 
 	case EnumspLoggerFilename:
-		printf("in images splogger filename. param is %s\n", param);
-
 		if (strcmp(param,""))//not empty
 				{
 					strcpy(config->spLoggerFilename,param);
